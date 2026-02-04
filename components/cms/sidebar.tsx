@@ -62,6 +62,7 @@ export function Sidebar() {
             className={cn(
               "flex w-full items-center gap-3 rounded-none px-3 py-1.5 text-sm font-medium transition-all border-l-2 border-transparent",
               "text-muted-foreground hover:bg-red-50 hover:text-red-600 hover:border-red-600",
+              "cursor-pointer",
             )}
           >
             <SignOutIcon className="h-4 w-4" />
