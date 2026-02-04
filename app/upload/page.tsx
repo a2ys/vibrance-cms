@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useCallback, useMemo } from "react";
 import { CMSLayout } from "@/components/cms/cms-layout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -41,31 +41,34 @@ export default function UploadMediaPage() {
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
   const [previewMedia, setPreviewMedia] = useState<UploadedFile | null>(null);
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files.length > 0) {
-      const newFiles = Array.from(e.target.files);
+  const handleFileChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      if (e.target.files && e.target.files.length > 0) {
+        const newFiles = Array.from(e.target.files);
 
-      const filteredFiles = newFiles.filter((file) => {
-        if (activeTab === "photos") return file.type.startsWith("image/");
-        if (activeTab === "videos") return file.type.startsWith("video/");
-        return false;
-      });
+        const filteredFiles = newFiles.filter((file) => {
+          if (activeTab === "photos") return file.type.startsWith("image/");
+          if (activeTab === "videos") return file.type.startsWith("video/");
+          return false;
+        });
 
-      setSelectedFiles((prev) => [...prev, ...filteredFiles]);
-      e.target.value = "";
-    }
-  };
+        setSelectedFiles((prev) => [...prev, ...filteredFiles]);
+        e.target.value = "";
+      }
+    },
+    [activeTab],
+  );
 
-  const removeFile = (index: number) => {
+  const removeFile = useCallback((index: number) => {
     setSelectedFiles((prev) => prev.filter((_, i) => i !== index));
-  };
+  }, []);
 
-  const clearAllFiles = () => {
+  const clearAllFiles = useCallback(() => {
     setSelectedFiles([]);
     setProgress({ current: 0, total: 0 });
-  };
+  }, []);
 
-  const handleUpload = async () => {
+  const handleUpload = useCallback(async () => {
     if (selectedFiles.length === 0) return;
 
     setIsProcessing(true);
@@ -129,10 +132,11 @@ export default function UploadMediaPage() {
       alert(`Complete. ${successCount}/${selectedFiles.length} successful.`);
       setSelectedFiles([]);
     }
-  };
+  }, [selectedFiles, activeTab]);
 
-  const filteredUploadedFiles = uploadedFiles.filter(
-    (f) => f.type === activeTab,
+  const filteredUploadedFiles = useMemo(
+    () => uploadedFiles.filter((f) => f.type === activeTab),
+    [uploadedFiles, activeTab],
   );
 
   return (
@@ -140,28 +144,28 @@ export default function UploadMediaPage() {
       title="Upload Media"
       description="Upload photos and videos to your R2 storage"
       actions={
-        <Link href="/media">
+        <Link href="/media" className="cursor-pointer">
           <Button
             variant="outline"
-            className="rounded-none bg-white hover:bg-zinc-50 border-zinc-200"
+            className="rounded-none bg-white hover:bg-zinc-50 border-zinc-200 h-8 text-xs cursor-pointer"
           >
-            <EyeIcon className="mr-2 h-4 w-4" />
+            <EyeIcon className="mr-2 h-3.5 w-3.5" />
             Browse Media
           </Button>
         </Link>
       }
     >
       <div className="bg-zinc-50 min-h-screen">
-        <div className="grid gap-6 lg:grid-cols-3">
-          <div className="lg:col-span-2 space-y-6">
+        <div className="grid gap-4 lg:grid-cols-3">
+          <div className="lg:col-span-2 space-y-4">
             <Card className="rounded-none border-zinc-200 bg-white shadow-sm h-fit">
-              <CardHeader className="border-b border-zinc-100 pb-4">
-                <CardTitle>Upload New Media</CardTitle>
-                <p className="text-sm text-muted-foreground">
+              <CardHeader className="border-b border-zinc-100 pb-3 pt-4 px-4">
+                <CardTitle className="text-base">Upload New Media</CardTitle>
+                <p className="text-xs text-muted-foreground">
                   Select files to upload. Bulk upload supported.
                 </p>
               </CardHeader>
-              <CardContent className="pt-6">
+              <CardContent className="pt-4 px-4 pb-4">
                 <Tabs
                   value={activeTab}
                   onValueChange={(v) => {
@@ -169,32 +173,32 @@ export default function UploadMediaPage() {
                     setSelectedFiles([]);
                   }}
                 >
-                  <TabsList className="grid w-full grid-cols-2 rounded-none bg-zinc-100 p-1 mb-6">
+                  <TabsList className="grid w-full grid-cols-2 rounded-none bg-zinc-100 p-1 mb-4 h-9">
                     <TabsTrigger
                       value="photos"
-                      className="gap-2 rounded-none data-[state=active]:bg-white data-[state=active]:shadow-sm"
+                      className="gap-2 rounded-none data-[state=active]:bg-white data-[state=active]:shadow-sm text-xs cursor-pointer"
                     >
-                      <ImageSquareIcon className="h-4 w-4" />
+                      <ImageSquareIcon className="h-3.5 w-3.5" />
                       Photos
                     </TabsTrigger>
                     <TabsTrigger
                       value="videos"
-                      className="gap-2 rounded-none data-[state=active]:bg-white data-[state=active]:shadow-sm"
+                      className="gap-2 rounded-none data-[state=active]:bg-white data-[state=active]:shadow-sm text-xs cursor-pointer"
                     >
-                      <VideoCameraIcon className="h-4 w-4" />
+                      <VideoCameraIcon className="h-3.5 w-3.5" />
                       Videos
                     </TabsTrigger>
                   </TabsList>
 
-                  <div className="mt-4">
+                  <div className="mt-3">
                     <label
-                      className={`flex flex-col items-center justify-center border-2 border-dashed p-8 transition-colors cursor-pointer bg-zinc-50/50 rounded-none ${isProcessing ? "opacity-50 pointer-events-none" : "hover:bg-zinc-50 hover:border-zinc-400 border-zinc-300"}`}
+                      className={`flex flex-col items-center justify-center border-2 border-dashed p-6 transition-colors cursor-pointer bg-zinc-50/50 rounded-none ${isProcessing ? "opacity-50 pointer-events-none" : "hover:bg-zinc-50 hover:border-zinc-400 border-zinc-300"}`}
                     >
-                      <UploadSimpleIcon className="mb-2 h-8 w-8 text-muted-foreground" />
+                      <UploadSimpleIcon className="mb-2 h-6 w-6 text-muted-foreground" />
                       <span className="text-sm text-muted-foreground font-medium">
                         Click to select {activeTab}
                       </span>
-                      <span className="text-xs text-muted-foreground mt-1">
+                      <span className="text-[10px] text-muted-foreground mt-0.5">
                         {activeTab === "photos"
                           ? "Auto-converted to WebP"
                           : "Original quality upload"}
@@ -211,7 +215,7 @@ export default function UploadMediaPage() {
                   </div>
 
                   {selectedFiles.length > 0 && (
-                    <div className="mt-6 space-y-4">
+                    <div className="mt-4 space-y-3">
                       <div className="flex items-center justify-between">
                         <h3 className="text-sm font-medium">
                           Selected Files ({selectedFiles.length})
@@ -221,31 +225,31 @@ export default function UploadMediaPage() {
                           size="sm"
                           onClick={clearAllFiles}
                           disabled={isProcessing}
-                          className="text-destructive hover:text-destructive h-8 px-2"
+                          className="text-destructive hover:text-destructive h-7 px-2 text-xs cursor-pointer"
                         >
                           Clear All
                         </Button>
                       </div>
 
-                      <div className="grid gap-2 max-h-75 overflow-y-auto pr-2 border border-zinc-100 bg-zinc-50 p-2">
+                      <div className="grid gap-1.5 max-h-60 overflow-y-auto pr-1 border border-zinc-100 bg-zinc-50 p-1.5">
                         {selectedFiles.map((file, idx) => (
                           <div
                             key={idx}
-                            className="flex items-center justify-between bg-white border border-zinc-200 p-2 text-sm"
+                            className="flex items-center justify-between bg-white border border-zinc-200 p-1.5 text-sm"
                           >
-                            <div className="flex items-center gap-3 overflow-hidden">
-                              <div className="h-8 w-8 bg-zinc-100 flex items-center justify-center shrink-0">
+                            <div className="flex items-center gap-2 overflow-hidden">
+                              <div className="h-7 w-7 bg-zinc-100 flex items-center justify-center shrink-0">
                                 {activeTab === "photos" ? (
-                                  <ImageSquareIcon className="text-zinc-400" />
+                                  <ImageSquareIcon className="text-zinc-400 h-3.5 w-3.5" />
                                 ) : (
-                                  <VideoCameraIcon className="text-zinc-400" />
+                                  <VideoCameraIcon className="text-zinc-400 h-3.5 w-3.5" />
                                 )}
                               </div>
                               <div className="min-w-0">
-                                <p className="truncate font-medium text-zinc-700">
+                                <p className="truncate font-medium text-zinc-700 text-xs">
                                   {file.name}
                                 </p>
-                                <p className="text-xs text-muted-foreground">
+                                <p className="text-[10px] text-muted-foreground">
                                   {(file.size / 1024).toFixed(1)} KB
                                 </p>
                               </div>
@@ -255,13 +259,13 @@ export default function UploadMediaPage() {
                                 variant="ghost"
                                 size="icon"
                                 onClick={() => removeFile(idx)}
-                                className="h-6 w-6 text-muted-foreground hover:text-destructive"
+                                className="h-6 w-6 text-muted-foreground hover:text-destructive cursor-pointer"
                               >
-                                <XIcon className="h-4 w-4" />
+                                <XIcon className="h-3.5 w-3.5" />
                               </Button>
                             )}
                             {isProcessing && idx < progress.current && (
-                              <CheckCircleIcon className="h-5 w-5 text-green-500" />
+                              <CheckCircleIcon className="h-4 w-4 text-green-500" />
                             )}
                             {isProcessing && idx === progress.current && (
                               <SpinnerIcon className="h-4 w-4 animate-spin text-zinc-500" />
@@ -273,7 +277,7 @@ export default function UploadMediaPage() {
                       <div className="space-y-2">
                         {isProcessing && (
                           <div className="space-y-1">
-                            <div className="flex justify-between text-xs text-muted-foreground">
+                            <div className="flex justify-between text-[10px] text-muted-foreground">
                               <span>{statusMessage}</span>
                               <span>
                                 {Math.round(
@@ -282,7 +286,7 @@ export default function UploadMediaPage() {
                                 %
                               </span>
                             </div>
-                            <div className="w-full bg-zinc-100 h-2 rounded-full overflow-hidden">
+                            <div className="w-full bg-zinc-100 h-1.5 rounded-full overflow-hidden">
                               <div
                                 className="bg-zinc-900 h-full transition-all duration-300"
                                 style={{
@@ -296,7 +300,7 @@ export default function UploadMediaPage() {
                         <Button
                           onClick={handleUpload}
                           disabled={isProcessing}
-                          className="w-full rounded-none"
+                          className="w-full rounded-none h-8 text-xs cursor-pointer"
                         >
                           {isProcessing
                             ? "Processing..."
@@ -311,11 +315,11 @@ export default function UploadMediaPage() {
 
             {filteredUploadedFiles.length > 0 && (
               <Card className="rounded-none border-zinc-200 bg-white shadow-sm">
-                <CardHeader className="border-b border-zinc-100 pb-4">
-                  <CardTitle>Session Uploads</CardTitle>
+                <CardHeader className="border-b border-zinc-100 pb-3 pt-4 px-4">
+                  <CardTitle className="text-base">Session Uploads</CardTitle>
                 </CardHeader>
-                <CardContent className="pt-6">
-                  <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                <CardContent className="pt-4 px-4 pb-4">
+                  <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                     {filteredUploadedFiles.map((file, idx) => (
                       <div
                         key={idx}
@@ -335,7 +339,7 @@ export default function UploadMediaPage() {
                             <Button
                               size="sm"
                               variant="secondary"
-                              className="rounded-none h-8"
+                              className="rounded-none h-7 text-xs cursor-pointer"
                               onClick={() => setPreviewMedia(file)}
                             >
                               <EyeIcon className="mr-1 h-3 w-3" /> Preview
@@ -343,10 +347,10 @@ export default function UploadMediaPage() {
                           </div>
                         </div>
                         <div className="p-2 bg-white border-t border-zinc-200">
-                          <p className="text-xs truncate font-medium">
+                          <p className="text-[10px] truncate font-medium">
                             {file.name}
                           </p>
-                          <p className="text-[10px] text-muted-foreground">
+                          <p className="text-[9px] text-muted-foreground">
                             {(file.size / 1024).toFixed(1)} KB
                           </p>
                         </div>
@@ -358,16 +362,16 @@ export default function UploadMediaPage() {
             )}
           </div>
 
-          <div className="space-y-6">
+          <div className="space-y-4">
             <Card className="rounded-none border-zinc-200 bg-white shadow-sm h-fit">
-              <CardHeader className="border-b border-zinc-100 pb-4">
-                <CardTitle className="flex items-center gap-2 text-base">
-                  <InfoIcon className="h-5 w-5" />
+              <CardHeader className="border-b border-zinc-100 pb-3 pt-4 px-4">
+                <CardTitle className="flex items-center gap-2 text-sm">
+                  <InfoIcon className="h-4 w-4" />
                   Info
                 </CardTitle>
               </CardHeader>
-              <CardContent className="pt-6 space-y-4 text-sm text-muted-foreground">
-                <ul className="list-disc pl-4 space-y-2">
+              <CardContent className="pt-4 px-4 pb-4 space-y-3 text-xs text-muted-foreground">
+                <ul className="list-disc pl-4 space-y-1.5">
                   <li>
                     <strong>Photos:</strong> Automatically converted to WebP
                     (80% quality) to save space.
@@ -395,16 +399,16 @@ export default function UploadMediaPage() {
                   Preview: {previewMedia.name}
                 </DialogTitle>
 
-                <div className="flex items-center justify-between px-4 py-3 border-b border-zinc-800 bg-zinc-900/50">
-                  <div className="flex items-center gap-3 overflow-hidden">
-                    <div className="p-1.5 bg-zinc-800 rounded-sm">
+                <div className="flex items-center justify-between px-3 py-2 border-b border-zinc-800 bg-zinc-900/50">
+                  <div className="flex items-center gap-2 overflow-hidden">
+                    <div className="p-1 bg-zinc-800 rounded-sm">
                       {previewMedia.type === "videos" ? (
-                        <VideoCameraIcon className="h-4 w-4 text-zinc-400" />
+                        <VideoCameraIcon className="h-3.5 w-3.5 text-zinc-400" />
                       ) : (
-                        <ImageSquareIcon className="h-4 w-4 text-zinc-400" />
+                        <ImageSquareIcon className="h-3.5 w-3.5 text-zinc-400" />
                       )}
                     </div>
-                    <span className="text-sm font-medium text-zinc-200 truncate font-mono">
+                    <span className="text-xs font-medium text-zinc-200 truncate font-mono">
                       {previewMedia.name}
                     </span>
                   </div>
@@ -419,18 +423,18 @@ export default function UploadMediaPage() {
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="h-8 w-8 text-zinc-400 hover:text-white hover:bg-zinc-800 rounded-none"
+                        className="h-7 w-7 text-zinc-400 hover:text-white hover:bg-zinc-800 rounded-none cursor-pointer"
                       >
-                        <DownloadSimpleIcon className="h-4 w-4" />
+                        <DownloadSimpleIcon className="h-3.5 w-3.5" />
                       </Button>
                     </a>
                     <Button
                       variant="ghost"
                       size="icon"
                       onClick={() => setPreviewMedia(null)}
-                      className="h-8 w-8 text-zinc-400 hover:text-white hover:bg-zinc-800 rounded-none"
+                      className="h-7 w-7 text-zinc-400 hover:text-white hover:bg-zinc-800 rounded-none cursor-pointer"
                     >
-                      <XIcon className="h-4 w-4" />
+                      <XIcon className="h-3.5 w-3.5" />
                     </Button>
                   </div>
                 </div>
@@ -453,14 +457,14 @@ export default function UploadMediaPage() {
                   )}
                 </div>
 
-                <div className="flex items-center gap-6 px-4 py-2 border-t border-zinc-800 bg-zinc-900/50 text-xs text-zinc-500">
-                  <div className="flex items-center gap-2">
-                    <InfoIcon className="h-3.5 w-3.5" />
+                <div className="flex items-center gap-4 px-3 py-2 border-t border-zinc-800 bg-zinc-900/50 text-[10px] text-zinc-500">
+                  <div className="flex items-center gap-1.5">
+                    <InfoIcon className="h-3 w-3" />
                     <span>File Details</span>
                   </div>
-                  <div className="h-3 w-px bg-zinc-800" />
+                  <div className="h-2.5 w-px bg-zinc-800" />
                   <span>Size: {(previewMedia.size / 1024).toFixed(1)} KB</span>
-                  <div className="h-3 w-px bg-zinc-800" />
+                  <div className="h-2.5 w-px bg-zinc-800" />
                   <span>Status: Uploaded just now</span>
                 </div>
               </>

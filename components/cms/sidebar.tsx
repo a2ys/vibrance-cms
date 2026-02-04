@@ -22,7 +22,7 @@ export function Sidebar() {
 
   return (
     <aside className="fixed inset-y-0 left-0 z-50 w-64 border-r border-zinc-200 bg-white">
-      <div className="flex h-16 items-center border-b border-zinc-200 px-6">
+      <div className="flex h-14 items-center border-b border-zinc-200 px-4">
         <div className="flex items-center gap-2">
           <div className="h-6 w-6 bg-foreground rounded-none"></div>
           <span className="text-lg font-bold tracking-tight text-foreground">
@@ -30,7 +30,7 @@ export function Sidebar() {
           </span>
         </div>
       </div>
-      <nav className="flex flex-col gap-1 p-4">
+      <nav className="flex flex-col gap-0.5 p-2">
         {navigation.map((item) => {
           const isActive =
             pathname === item.href ||
@@ -40,7 +40,7 @@ export function Sidebar() {
               key={item.name}
               href={item.href}
               className={cn(
-                "flex items-center gap-3 rounded-none px-3 py-2 text-sm font-medium transition-all border-l-2",
+                "flex items-center gap-3 rounded-none px-3 py-1.5 text-sm font-medium transition-all border-l-2",
                 isActive
                   ? "bg-zinc-100 text-foreground border-foreground"
                   : "text-muted-foreground hover:bg-zinc-50 hover:text-foreground border-transparent",

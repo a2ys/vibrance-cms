@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { CMSLayout } from "@/components/cms/cms-layout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -90,6 +90,10 @@ interface BreadcrumbItem {
   path: string;
 }
 
+function Skeleton({ className }: { className: string }) {
+  return <div className={`animate-pulse bg-zinc-200 ${className}`} />;
+}
+
 export default function MediaBrowserPage() {
   const [currentPath, setCurrentPath] = useState<string>("");
   const [breadcrumbs, setBreadcrumbs] = useState<BreadcrumbItem[]>([]);
@@ -103,21 +107,7 @@ export default function MediaBrowserPage() {
   const [files, setFiles] = useState<MediaFile[]>([]);
   const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    setSelectedKeys(new Set());
-
-    if (
-      currentPath === "images/photos/" ||
-      currentPath === "videos/" ||
-      currentPath === "images/posters/"
-    ) {
-      fetchFiles(currentPath);
-    } else {
-      setFiles([]);
-    }
-  }, [currentPath]);
-
-  const fetchFiles = async (prefix: string) => {
+  const fetchFiles = useCallback(async (prefix: string) => {
     setLoading(true);
     try {
       const res = await fetch(`${API_URL}/media?prefix=${prefix}`);
@@ -133,27 +123,44 @@ export default function MediaBrowserPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  const toggleSelection = (key: string) => {
-    const newSet = new Set(selectedKeys);
-    if (newSet.has(key)) {
-      newSet.delete(key);
+  useEffect(() => {
+    setSelectedKeys(new Set());
+    if (
+      currentPath === "images/photos/" ||
+      currentPath === "videos/" ||
+      currentPath === "images/posters/"
+    ) {
+      fetchFiles(currentPath);
     } else {
-      newSet.add(key);
+      setFiles([]);
     }
-    setSelectedKeys(newSet);
-  };
+  }, [currentPath, fetchFiles]);
 
-  const handleSelectAll = () => {
-    if (selectedKeys.size === files.length) {
-      setSelectedKeys(new Set());
-    } else {
-      setSelectedKeys(new Set(files.map((f) => f.key)));
-    }
-  };
+  const toggleSelection = useCallback((key: string) => {
+    setSelectedKeys((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(key)) {
+        newSet.delete(key);
+      } else {
+        newSet.add(key);
+      }
+      return newSet;
+    });
+  }, []);
 
-  const handleBulkDownload = async () => {
+  const handleSelectAll = useCallback(() => {
+    setSelectedKeys((prev) => {
+      if (prev.size === files.length) {
+        return new Set();
+      } else {
+        return new Set(files.map((f) => f.key));
+      }
+    });
+  }, [files]);
+
+  const handleBulkDownload = useCallback(async () => {
     if (selectedKeys.size === 0) return;
     setIsBulkDownloading(true);
 
@@ -168,7 +175,6 @@ export default function MediaBrowserPage() {
         saveAs(blob, fileName);
       } else {
         const zip = new JSZip();
-
         const promises = selectedFiles.map(async (file) => {
           try {
             const response = await fetch(`${API_URL}${file.url}`);
@@ -182,7 +188,6 @@ export default function MediaBrowserPage() {
         });
 
         await Promise.all(promises);
-
         const content = await zip.generateAsync({ type: "blob" });
         const folderName =
           currentPath.replace(/\/$/, "").split("/").pop() || "media";
@@ -190,13 +195,12 @@ export default function MediaBrowserPage() {
       }
     } catch (error) {
       console.error("Download failed", error);
-      alert("Failed to download files.");
     } finally {
       setIsBulkDownloading(false);
     }
-  };
+  }, [files, selectedKeys, currentPath]);
 
-  const executeDelete = async () => {
+  const executeDelete = useCallback(async () => {
     setIsBulkDeleting(true);
     const keysToDelete = Array.from(selectedKeys);
 
@@ -214,37 +218,45 @@ export default function MediaBrowserPage() {
       setShowDeleteConfirm(false);
     } catch (error) {
       console.error("Bulk delete error", error);
-      alert("Some files failed to delete.");
     } finally {
       setIsBulkDeleting(false);
     }
-  };
+  }, [selectedKeys]);
 
-  const navigateToFolder = (folderName: string, folderPath: string) => {
-    setCurrentPath(folderPath);
-    setBreadcrumbs((prev) => [...prev, { name: folderName, path: folderPath }]);
-  };
+  const navigateToFolder = useCallback(
+    (folderName: string, folderPath: string) => {
+      setCurrentPath(folderPath);
+      setBreadcrumbs((prev) => [
+        ...prev,
+        { name: folderName, path: folderPath },
+      ]);
+    },
+    [],
+  );
 
-  const navigateToRoot = () => {
+  const navigateToRoot = useCallback(() => {
     setCurrentPath("");
     setBreadcrumbs([]);
-  };
+  }, []);
 
-  const navigateToBreadcrumb = (index: number) => {
-    const newBreadcrumbs = breadcrumbs.slice(0, index + 1);
-    setBreadcrumbs(newBreadcrumbs);
-    setCurrentPath(newBreadcrumbs[newBreadcrumbs.length - 1]?.path || "");
-  };
+  const navigateToBreadcrumb = useCallback(
+    (index: number) => {
+      const newBreadcrumbs = breadcrumbs.slice(0, index + 1);
+      setBreadcrumbs(newBreadcrumbs);
+      setCurrentPath(newBreadcrumbs[newBreadcrumbs.length - 1]?.path || "");
+    },
+    [breadcrumbs],
+  );
 
-  const handleBack = () => {
+  const handleBack = useCallback(() => {
     if (breadcrumbs.length <= 1) {
       navigateToRoot();
     } else {
       navigateToBreadcrumb(breadcrumbs.length - 2);
     }
-  };
+  }, [breadcrumbs.length, navigateToRoot, navigateToBreadcrumb]);
 
-  const getCurrentFolderContents = () => {
+  const { folders } = useMemo(() => {
     if (!currentPath) {
       return { folders: folderStructure.root.folders };
     }
@@ -254,9 +266,8 @@ export default function MediaBrowserPage() {
       }
     }
     return { folders: [] };
-  };
+  }, [currentPath]);
 
-  const { folders } = getCurrentFolderContents();
   const isLeafFolder = folders.length === 0 && currentPath !== "";
 
   return (
@@ -269,14 +280,14 @@ export default function MediaBrowserPage() {
             <>
               <Button
                 variant="outline"
-                className="rounded-none bg-white animate-in fade-in zoom-in"
+                className="rounded-none bg-white animate-in fade-in zoom-in h-8 text-xs cursor-pointer"
                 onClick={handleBulkDownload}
                 disabled={isBulkDownloading || isBulkDeleting}
               >
                 {isBulkDownloading ? (
-                  <SpinnerIcon className="mr-2 h-4 w-4 animate-spin" />
+                  <SpinnerIcon className="mr-2 h-3.5 w-3.5 animate-spin" />
                 ) : (
-                  <DownloadSimpleIcon className="mr-2 h-4 w-4" />
+                  <DownloadSimpleIcon className="mr-2 h-3.5 w-3.5" />
                 )}
                 {isBulkDownloading
                   ? "Processing..."
@@ -285,18 +296,21 @@ export default function MediaBrowserPage() {
 
               <Button
                 variant="destructive"
-                className="rounded-none animate-in fade-in zoom-in"
+                className="rounded-none animate-in fade-in zoom-in h-8 text-xs cursor-pointer"
                 onClick={() => setShowDeleteConfirm(true)}
                 disabled={isBulkDownloading || isBulkDeleting}
               >
-                <TrashIcon className="mr-2 h-4 w-4" />
+                <TrashIcon className="mr-2 h-3.5 w-3.5" />
                 Delete ({selectedKeys.size})
               </Button>
             </>
           )}
-          <Link href="/upload">
-            <Button className="rounded-none" disabled={isBulkDownloading}>
-              <UploadSimpleIcon className="mr-2 h-4 w-4" />
+          <Link href="/upload" className="cursor-pointer">
+            <Button
+              className="rounded-none h-8 text-xs cursor-pointer"
+              disabled={isBulkDownloading}
+            >
+              <UploadSimpleIcon className="mr-2 h-3.5 w-3.5" />
               Upload Media
             </Button>
           </Link>
@@ -304,28 +318,27 @@ export default function MediaBrowserPage() {
       }
     >
       <div className="bg-zinc-50 min-h-screen">
-        <Card className="mb-6 rounded-none border-zinc-200 bg-white shadow-sm">
-          <CardContent className="py-3 flex items-center justify-between gap-2">
-            {/* Left: Breadcrumbs */}
+        <Card className="mb-4 rounded-none border-zinc-200 bg-white shadow-sm">
+          <CardContent className="py-2 px-3 flex items-center justify-between gap-2">
             <div className="flex items-center gap-2">
               {currentPath && (
                 <Button
                   variant="outline"
                   size="icon"
                   onClick={handleBack}
-                  className="h-7 w-7 rounded-none border-zinc-200 mr-2"
+                  className="h-7 w-7 rounded-none border-zinc-200 mr-1 cursor-pointer"
                   title="Go Back"
                 >
-                  <ArrowLeftIcon className="h-4 w-4" />
+                  <ArrowLeftIcon className="h-3.5 w-3.5" />
                 </Button>
               )}
 
-              <div className="flex items-center gap-2 text-sm">
+              <div className="flex items-center gap-1 text-sm">
                 <Button
                   variant="ghost"
                   size="sm"
                   onClick={navigateToRoot}
-                  className="h-7 px-2 rounded-none hover:bg-zinc-100 text-zinc-500"
+                  className="h-7 px-2 rounded-none hover:bg-zinc-100 text-zinc-500 cursor-pointer"
                 >
                   <HouseIcon className="h-4 w-4" />
                 </Button>
@@ -335,12 +348,12 @@ export default function MediaBrowserPage() {
                 )}
 
                 {breadcrumbs.map((item, index) => (
-                  <div key={item.path} className="flex items-center gap-2">
+                  <div key={item.path} className="flex items-center gap-1">
                     <Button
                       variant="ghost"
                       size="sm"
                       onClick={() => navigateToBreadcrumb(index)}
-                      className={`h-7 px-2 rounded-none hover:bg-zinc-100 ${
+                      className={`h-7 px-2 rounded-none hover:bg-zinc-100 cursor-pointer ${
                         index === breadcrumbs.length - 1
                           ? "font-semibold text-foreground bg-zinc-50"
                           : "text-muted-foreground"
@@ -362,9 +375,9 @@ export default function MediaBrowserPage() {
                   variant="ghost"
                   size="sm"
                   onClick={handleSelectAll}
-                  className="h-7 text-xs text-muted-foreground hover:text-foreground rounded-none"
+                  className="h-7 text-xs text-muted-foreground hover:text-foreground rounded-none cursor-pointer"
                 >
-                  <ChecksIcon className="mr-2 h-3 w-3" />
+                  <ChecksIcon className="mr-2 h-3.5 w-3.5" />
                   {selectedKeys.size === files.length
                     ? "Deselect All"
                     : "Select All"}
@@ -375,7 +388,7 @@ export default function MediaBrowserPage() {
         </Card>
 
         {folders.length > 0 && (
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
             {folders.map((folder) => {
               const Icon = folder.icon || FolderIcon;
               return (
@@ -384,26 +397,26 @@ export default function MediaBrowserPage() {
                   className="cursor-pointer transition-all hover:bg-zinc-50 hover:border-zinc-300 rounded-none border-zinc-200 bg-white shadow-sm"
                   onClick={() => navigateToFolder(folder.name, folder.path)}
                 >
-                  <CardContent className="flex items-center gap-4 p-4">
-                    <div className="flex h-12 w-12 items-center justify-center bg-zinc-100 border border-zinc-200 rounded-none">
-                      <Icon className="h-6 w-6 text-zinc-600" />
+                  <CardContent className="flex items-center gap-3 p-3">
+                    <div className="flex h-10 w-10 items-center justify-center bg-zinc-100 border border-zinc-200 rounded-none">
+                      <Icon className="h-5 w-5 text-zinc-600" />
                     </div>
                     <div className="flex-1">
-                      <h3 className="font-medium text-foreground">
+                      <h3 className="font-medium text-foreground text-sm">
                         {folder.name}
                       </h3>
                       {folder.description && (
-                        <p className="text-sm text-muted-foreground">
+                        <p className="text-xs text-muted-foreground">
                           {folder.description}
                         </p>
                       )}
                       {folder.subfolders && folder.subfolders.length > 0 && (
-                        <p className="text-xs text-muted-foreground mt-1">
+                        <p className="text-[10px] text-muted-foreground mt-0.5">
                           {folder.subfolders.length} subfolder(s)
                         </p>
                       )}
                     </div>
-                    <CaretRightIcon className="h-5 w-5 text-muted-foreground" />
+                    <CaretRightIcon className="h-4 w-4 text-muted-foreground" />
                   </CardContent>
                 </Card>
               );
@@ -412,52 +425,64 @@ export default function MediaBrowserPage() {
         )}
 
         {isLeafFolder && (
-          <div className="space-y-6">
-            <div className="flex items-center justify-between">
-              <h2 className="text-lg font-medium">Files</h2>
-              <span className="text-sm text-muted-foreground">
+          <div className="space-y-4">
+            <div className="flex items-center justify-between px-1">
+              <h2 className="text-base font-medium">Files</h2>
+              <span className="text-xs text-muted-foreground">
                 {files.length} items
               </span>
             </div>
 
             {loading ? (
-              <div className="flex justify-center py-12">
-                <p className="text-muted-foreground animate-pulse">
-                  Loading files...
-                </p>
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-2">
+                {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map((i) => (
+                  <div
+                    key={i}
+                    className="aspect-square border border-zinc-200 bg-white p-2"
+                  >
+                    <Skeleton className="w-full h-full" />
+                  </div>
+                ))}
               </div>
             ) : files.length === 0 ? (
-              <div className="border border-zinc-200 bg-white p-12 text-center rounded-none">
-                <p className="text-muted-foreground">No files found here.</p>
-                <Link href="/upload" className="mt-4 inline-block">
-                  <Button variant="outline" className="rounded-none">
+              <div className="border border-zinc-200 bg-white p-8 text-center rounded-none">
+                <p className="text-sm text-muted-foreground">
+                  No files found here.
+                </p>
+                <Link
+                  href="/upload"
+                  className="mt-3 inline-block cursor-pointer"
+                >
+                  <Button
+                    variant="outline"
+                    className="rounded-none h-8 text-xs cursor-pointer"
+                  >
                     Upload New
                   </Button>
                 </Link>
               </div>
             ) : (
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-4">
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-2">
                 {files.map((file) => {
                   const isSelected = selectedKeys.has(file.key);
                   return (
                     <Card
                       key={file.key}
-                      className={`group relative rounded-none border shadow-sm overflow-hidden transition-all ${
+                      className={`group relative rounded-none border shadow-sm overflow-hidden transition-all cursor-pointer ${
                         isSelected
                           ? "border-blue-500 ring-1 ring-blue-500 bg-blue-50/10"
                           : "border-zinc-200 bg-white"
                       }`}
                       onClick={() => toggleSelection(file.key)}
                     >
-                      {/* Selection Checkbox */}
                       <div className="absolute top-2 left-2 z-10">
                         {isSelected ? (
                           <CheckCircleIcon
                             weight="fill"
-                            className="h-6 w-6 text-blue-500 bg-white rounded-full"
+                            className="h-5 w-5 text-blue-500 bg-white rounded-full"
                           />
                         ) : (
-                          <CircleIcon className="h-6 w-6 text-white drop-shadow-md opacity-70 group-hover:opacity-100" />
+                          <CircleIcon className="h-5 w-5 text-white drop-shadow-md opacity-70 group-hover:opacity-100" />
                         )}
                       </div>
 
@@ -465,7 +490,7 @@ export default function MediaBrowserPage() {
                         {file.key.endsWith(".mp4") ||
                         file.key.includes("videos/") ? (
                           <div className="w-full h-full flex items-center justify-center bg-black">
-                            <VideoCameraIcon className="h-12 w-12 text-white opacity-50" />
+                            <VideoCameraIcon className="h-10 w-10 text-white opacity-50" />
                             <video
                               src={`${API_URL}${file.url}`}
                               className="absolute inset-0 w-full h-full object-cover opacity-60 pointer-events-none"
@@ -475,7 +500,9 @@ export default function MediaBrowserPage() {
                           <img
                             src={`${API_URL}${file.url}`}
                             alt={file.key}
-                            className={`h-full w-full object-cover transition-transform ${isSelected ? "scale-95" : "group-hover:scale-105"}`}
+                            className={`h-full w-full object-cover transition-transform ${
+                              isSelected ? "scale-95" : "group-hover:scale-105"
+                            }`}
                           />
                         )}
 
@@ -483,25 +510,25 @@ export default function MediaBrowserPage() {
                           <Button
                             size="icon"
                             variant="secondary"
-                            className="h-8 w-8 rounded-none"
+                            className="h-7 w-7 rounded-none cursor-pointer"
                             onClick={(e) => {
                               e.stopPropagation();
                               setSelectedMedia(file);
                             }}
                           >
-                            <ImageSquareIcon className="h-4 w-4" />
+                            <ImageSquareIcon className="h-3.5 w-3.5" />
                           </Button>
                         </div>
                       </div>
 
-                      <div className="p-3">
+                      <div className="p-2">
                         <p
-                          className="text-xs font-medium truncate"
+                          className="text-[10px] font-medium truncate"
                           title={file.key}
                         >
                           {file.key.split("/").pop()}
                         </p>
-                        <p className="text-[10px] text-muted-foreground mt-1">
+                        <p className="text-[9px] text-muted-foreground mt-0.5">
                           {(file.size / 1024).toFixed(1)} KB
                         </p>
                       </div>
@@ -517,23 +544,23 @@ export default function MediaBrowserPage() {
           open={selectedMedia !== null}
           onOpenChange={() => setSelectedMedia(null)}
         >
-          <DialogContent className="max-w-6xl h-[85vh] p-0 gap-0 rounded-none border-zinc-800 bg-zinc-950 flex flex-col overflow-hidden focus:outline-none [&>button]:hidden">
+          <DialogContent className="max-w-5xl h-[85vh] p-0 gap-0 rounded-none border-zinc-800 bg-zinc-950 flex flex-col overflow-hidden focus:outline-none [&>button]:hidden">
             {selectedMedia && (
               <>
                 <DialogTitle className="sr-only">
                   Media Preview: {selectedMedia.key}
                 </DialogTitle>
 
-                <div className="flex items-center justify-between px-4 py-3 border-b border-zinc-800 bg-zinc-900/50">
-                  <div className="flex items-center gap-3 overflow-hidden">
-                    <div className="p-1.5 bg-zinc-800 rounded-sm">
+                <div className="flex items-center justify-between px-3 py-2 border-b border-zinc-800 bg-zinc-900/50">
+                  <div className="flex items-center gap-2 overflow-hidden">
+                    <div className="p-1 bg-zinc-800 rounded-sm">
                       {selectedMedia.key.endsWith(".mp4") ? (
-                        <VideoCameraIcon className="h-4 w-4 text-zinc-400" />
+                        <VideoCameraIcon className="h-3.5 w-3.5 text-zinc-400" />
                       ) : (
-                        <ImageSquareIcon className="h-4 w-4 text-zinc-400" />
+                        <ImageSquareIcon className="h-3.5 w-3.5 text-zinc-400" />
                       )}
                     </div>
-                    <span className="text-sm font-medium text-zinc-200 truncate font-mono">
+                    <span className="text-xs font-medium text-zinc-200 truncate font-mono">
                       {selectedMedia.key.split("/").pop()}
                     </span>
                   </div>
@@ -543,9 +570,9 @@ export default function MediaBrowserPage() {
                       variant="ghost"
                       size="icon"
                       onClick={() => setSelectedMedia(null)}
-                      className="h-8 w-8 text-zinc-400 hover:text-white hover:bg-zinc-800 rounded-none"
+                      className="h-7 w-7 text-zinc-400 hover:text-white hover:bg-zinc-800 rounded-none cursor-pointer"
                     >
-                      <XIcon className="h-4 w-4" />
+                      <XIcon className="h-3.5 w-3.5" />
                     </Button>
                   </div>
                 </div>
@@ -590,7 +617,7 @@ export default function MediaBrowserPage() {
             <AlertDialogFooter>
               <AlertDialogCancel
                 disabled={isBulkDeleting}
-                className="rounded-none border-zinc-200 bg-white hover:bg-zinc-50"
+                className="rounded-none border-zinc-200 bg-white hover:bg-zinc-50 cursor-pointer"
               >
                 Cancel
               </AlertDialogCancel>
@@ -600,7 +627,7 @@ export default function MediaBrowserPage() {
                   executeDelete();
                 }}
                 disabled={isBulkDeleting}
-                className="rounded-none bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                className="rounded-none bg-destructive text-destructive-foreground hover:bg-destructive/90 cursor-pointer"
               >
                 {isBulkDeleting ? "Deleting..." : "Delete All"}
               </AlertDialogAction>

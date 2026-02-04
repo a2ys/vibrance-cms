@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { CMSLayout } from "@/components/cms/cms-layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { API_URL } from "@/lib/config";
@@ -15,6 +15,10 @@ import {
 } from "@phosphor-icons/react";
 
 const CARD_CLASS = "rounded-none border-zinc-200 bg-white shadow-sm";
+
+function Skeleton({ className }: { className: string }) {
+  return <div className={`animate-pulse bg-zinc-200 ${className}`} />;
+}
 
 export default function DashboardPage() {
   const [events, setEvents] = useState<Event[]>([]);
@@ -34,44 +38,53 @@ export default function DashboardPage() {
     fetchEvents();
   }, []);
 
-  const totalEvents = events.length;
-  const eventsWithImages = events.filter((e) => e.image_path).length;
-  const recentEvents = events.slice(0, 5);
+  const stats = useMemo(() => {
+    const totalEvents = events.length;
+    const eventsWithImages = events.filter((e) => e.image_path).length;
 
-  const stats = [
-    {
-      title: "Total Events",
-      value: totalEvents,
-      icon: CalendarBlankIcon,
-      description: "Events in database",
-    },
-    {
-      title: "With Posters",
-      value: eventsWithImages,
-      icon: ImageSquareIcon,
-      description: "Events with poster images",
-    },
-  ];
+    return [
+      {
+        title: "Total Events",
+        value: totalEvents,
+        icon: CalendarBlankIcon,
+        description: "Events in database",
+      },
+      {
+        title: "With Posters",
+        value: eventsWithImages,
+        icon: ImageSquareIcon,
+        description: "Events with poster images",
+      },
+    ];
+  }, [events]);
+
+  const recentEvents = useMemo(() => {
+    return events.slice(0, 5);
+  }, [events]);
 
   return (
     <CMSLayout
       title="Dashboard"
       description="Overview of your content management system"
     >
-      <div className="space-y-6 bg-zinc-50 min-h-screen p-6">
-        <div className="grid gap-4 md:grid-cols-2">
+      <div className="space-y-4 bg-zinc-50 min-h-screen p-4">
+        <div className="grid gap-3 md:grid-cols-2">
           {stats.map((stat) => (
             <Card key={stat.title} className={CARD_CLASS}>
-              <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardHeader className="flex flex-row items-center justify-between pb-1 space-y-0">
                 <CardTitle className="text-sm font-medium text-muted-foreground">
                   {stat.title}
                 </CardTitle>
                 <stat.icon className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-foreground">
-                  {loading ? "-" : stat.value}
-                </div>
+              <CardContent className="pt-2">
+                {loading ? (
+                  <Skeleton className="h-8 w-16 mb-1" />
+                ) : (
+                  <div className="text-2xl font-bold text-foreground">
+                    {stat.value}
+                  </div>
+                )}
                 <p className="text-xs text-muted-foreground">
                   {stat.description}
                 </p>
@@ -81,45 +94,61 @@ export default function DashboardPage() {
         </div>
 
         <Card className={CARD_CLASS}>
-          <CardHeader className="flex flex-row items-center justify-between border-b border-zinc-100 pb-4">
+          <CardHeader className="flex flex-row items-center justify-between border-b border-zinc-100 pb-3 pt-4 px-4">
             <div>
-              <CardTitle>Recent Events</CardTitle>
-              <p className="text-sm text-muted-foreground">
+              <CardTitle className="text-base">Recent Events</CardTitle>
+              <p className="text-xs text-muted-foreground">
                 Your latest events at a glance
               </p>
             </div>
-            <Link href="/events">
+            <Link href="/events" className="cursor-pointer">
               <Button
                 variant="outline"
                 size="sm"
-                className="rounded-none bg-zinc-50 hover:bg-zinc-100 border-zinc-200"
+                className="rounded-none bg-zinc-50 hover:bg-zinc-100 border-zinc-200 h-8 text-xs cursor-pointer"
               >
                 View All
               </Button>
             </Link>
           </CardHeader>
-          <CardContent className="pt-6">
+          <CardContent className="pt-3 px-3 pb-3">
             {loading ? (
-              <p className="text-sm text-muted-foreground">Loading...</p>
+              <div className="space-y-2">
+                {[1, 2, 3].map((i) => (
+                  <div
+                    key={i}
+                    className="flex items-center gap-3 border border-zinc-100 p-2"
+                  >
+                    <Skeleton className="h-10 w-10" />
+                    <div className="flex-1 space-y-2">
+                      <Skeleton className="h-3 w-3/4" />
+                      <Skeleton className="h-2 w-1/4" />
+                    </div>
+                  </div>
+                ))}
+              </div>
             ) : recentEvents.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-8 text-center">
-                <p className="mt-2 text-sm text-muted-foreground">
+              <div className="flex flex-col items-center justify-center py-6 text-center">
+                <p className="mt-1 text-sm text-muted-foreground">
                   No events yet
                 </p>
-                <Link href="/events/new" className="mt-4">
-                  <Button size="sm" className="rounded-none">
+                <Link href="/events/new" className="mt-3 cursor-pointer">
+                  <Button
+                    size="sm"
+                    className="rounded-none h-8 text-xs cursor-pointer"
+                  >
                     Create Your First Event
                   </Button>
                 </Link>
               </div>
             ) : (
-              <div className="space-y-3">
+              <div className="space-y-2">
                 {recentEvents.map((event) => (
                   <div
                     key={event.id}
-                    className="flex items-center gap-4 border border-zinc-200 bg-zinc-50/50 p-3 rounded-none transition-colors hover:bg-zinc-50"
+                    className="flex items-center gap-3 border border-zinc-200 bg-zinc-50/50 p-2 rounded-none transition-colors hover:bg-zinc-50"
                   >
-                    <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden border border-zinc-200 bg-white rounded-none">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden border border-zinc-200 bg-white rounded-none">
                       {event.image_path ? (
                         <img
                           src={`${API_URL}/${event.image_path}`}
@@ -132,19 +161,22 @@ export default function DashboardPage() {
                     </div>
 
                     <div className="flex-1 min-w-0">
-                      <p className="font-medium text-foreground truncate">
+                      <p className="font-medium text-foreground truncate text-sm">
                         {event.title}
                       </p>
-                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                      <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground uppercase tracking-wider">
                         <ClockIcon className="h-3 w-3" />
                         {event.date}
                       </div>
                     </div>
-                    <Link href={`/events/${event.id}`}>
+                    <Link
+                      href={`/events/${event.id}`}
+                      className="cursor-pointer"
+                    >
                       <Button
                         variant="ghost"
                         size="sm"
-                        className="rounded-none hover:bg-white hover:border-zinc-300 border border-transparent"
+                        className="rounded-none hover:bg-white hover:border-zinc-300 border border-transparent h-7 text-xs px-2 cursor-pointer"
                       >
                         View
                       </Button>
@@ -157,14 +189,14 @@ export default function DashboardPage() {
         </Card>
 
         <Card className={CARD_CLASS}>
-          <CardHeader>
-            <CardTitle>Quick Actions</CardTitle>
-            <p className="text-sm text-muted-foreground">
+          <CardHeader className="pb-2 pt-4 px-4">
+            <CardTitle className="text-base">Quick Actions</CardTitle>
+            <p className="text-xs text-muted-foreground">
               Common tasks you can perform
             </p>
           </CardHeader>
-          <CardContent>
-            <div className="grid gap-3 sm:grid-cols-3">
+          <CardContent className="px-4 pb-4">
+            <div className="grid gap-2 sm:grid-cols-3">
               {[
                 {
                   href: "/events/new",
@@ -188,15 +220,15 @@ export default function DashboardPage() {
                 <Link
                   key={action.href}
                   href={action.href}
-                  className="block group"
+                  className="block group cursor-pointer"
                 >
-                  <div className="flex items-center gap-3 border border-zinc-200 bg-zinc-50 p-4 transition-all hover:bg-zinc-100 hover:border-zinc-300 rounded-none">
-                    <action.icon className="h-5 w-5 text-muted-foreground group-hover:text-foreground" />
+                  <div className="flex items-center gap-3 border border-zinc-200 bg-zinc-50 p-3 transition-all hover:bg-zinc-100 hover:border-zinc-300 rounded-none h-full cursor-pointer">
+                    <action.icon className="h-5 w-5 text-muted-foreground group-hover:text-foreground shrink-0" />
                     <div>
-                      <p className="font-medium text-foreground">
+                      <p className="font-medium text-foreground text-sm">
                         {action.title}
                       </p>
-                      <p className="text-xs text-muted-foreground">
+                      <p className="text-[10px] text-muted-foreground">
                         {action.desc}
                       </p>
                     </div>
