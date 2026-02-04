@@ -11,16 +11,15 @@ import {
   CalendarBlankIcon,
   ClockIcon,
   ImageSquareIcon,
-  VideoIcon,
+  UploadSimpleIcon,
 } from "@phosphor-icons/react";
 
-const CARD_CLASS = "rounded-none border-border";
+const CARD_CLASS = "rounded-none border-zinc-200 bg-white shadow-sm";
 
 export default function DashboardPage() {
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // ... (Fetch logic remains the same) ...
   useEffect(() => {
     async function fetchEvents() {
       try {
@@ -28,7 +27,6 @@ export default function DashboardPage() {
         const data = await res.json();
         setEvents(data || []);
       } catch (error) {
-        console.log("[v0] Error fetching events:", error);
       } finally {
         setLoading(false);
       }
@@ -37,15 +35,9 @@ export default function DashboardPage() {
   }, []);
 
   const totalEvents = events.length;
-  const eventsWithImages = events.filter(
-    (e) => e.image_path && !e.image_path.includes("video"),
-  ).length;
-  const eventsWithVideos = events.filter((e) =>
-    e.image_path?.includes("video"),
-  ).length;
+  const eventsWithImages = events.filter((e) => e.image_path).length;
   const recentEvents = events.slice(0, 5);
 
-  // ... (Stats array remains the same) ...
   const stats = [
     {
       title: "Total Events",
@@ -59,12 +51,6 @@ export default function DashboardPage() {
       icon: ImageSquareIcon,
       description: "Events with poster images",
     },
-    {
-      title: "With Videos",
-      value: eventsWithVideos,
-      icon: VideoIcon,
-      description: "Events with video content",
-    },
   ];
 
   return (
@@ -72,8 +58,8 @@ export default function DashboardPage() {
       title="Dashboard"
       description="Overview of your content management system"
     >
-      <div className="space-y-6">
-        <div className="grid gap-4 md:grid-cols-3">
+      <div className="space-y-6 bg-zinc-50 min-h-screen p-6">
+        <div className="grid gap-4 md:grid-cols-2">
           {stats.map((stat) => (
             <Card key={stat.title} className={CARD_CLASS}>
               <CardHeader className="flex flex-row items-center justify-between pb-2">
@@ -106,7 +92,7 @@ export default function DashboardPage() {
               <Button
                 variant="outline"
                 size="sm"
-                className="rounded-none bg-zinc-50 hover:bg-zinc-100"
+                className="rounded-none bg-zinc-50 hover:bg-zinc-100 border-zinc-200"
               >
                 View All
               </Button>
@@ -117,7 +103,6 @@ export default function DashboardPage() {
               <p className="text-sm text-muted-foreground">Loading...</p>
             ) : recentEvents.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-8 text-center">
-                <CalendarBlankIcon className="h-12 w-12 text-muted-foreground/50" />
                 <p className="mt-2 text-sm text-muted-foreground">
                   No events yet
                 </p>
@@ -134,17 +119,18 @@ export default function DashboardPage() {
                     key={event.id}
                     className="flex items-center gap-4 border border-zinc-200 bg-zinc-50/50 p-3 rounded-none transition-colors hover:bg-zinc-50"
                   >
-                    <div className="flex h-12 w-12 items-center justify-center bg-white border border-zinc-200 rounded-none">
+                    <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden border border-zinc-200 bg-white rounded-none">
                       {event.image_path ? (
-                        event.image_path.includes("video") ? (
-                          <VideoIcon className="h-5 w-5 text-muted-foreground" />
-                        ) : (
-                          <ImageSquareIcon className="h-5 w-5 text-muted-foreground" />
-                        )
+                        <img
+                          src={`${API_URL}/${event.image_path}`}
+                          alt={event.title}
+                          className="h-full w-full object-cover"
+                        />
                       ) : (
                         <CalendarBlankIcon className="h-5 w-5 text-muted-foreground" />
                       )}
                     </div>
+
                     <div className="flex-1 min-w-0">
                       <p className="font-medium text-foreground truncate">
                         {event.title}
@@ -170,8 +156,7 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
 
-        {/* Quick Actions */}
-        <Card className="rounded-none border-border bg-white shadow-sm">
+        <Card className={CARD_CLASS}>
           <CardHeader>
             <CardTitle>Quick Actions</CardTitle>
             <p className="text-sm text-muted-foreground">
@@ -195,7 +180,7 @@ export default function DashboardPage() {
                 },
                 {
                   href: "/upload",
-                  icon: VideoIcon,
+                  icon: UploadSimpleIcon,
                   title: "Upload Media",
                   desc: "Add photos or videos",
                 },
@@ -205,7 +190,7 @@ export default function DashboardPage() {
                   href={action.href}
                   className="block group"
                 >
-                  <div className="flex items-center gap-3 border border-border bg-zinc-50 p-4 transition-all hover:bg-zinc-100 hover:border-zinc-300 rounded-none">
+                  <div className="flex items-center gap-3 border border-zinc-200 bg-zinc-50 p-4 transition-all hover:bg-zinc-100 hover:border-zinc-300 rounded-none">
                     <action.icon className="h-5 w-5 text-muted-foreground group-hover:text-foreground" />
                     <div>
                       <p className="font-medium text-foreground">
