@@ -25,6 +25,8 @@ import {
   TrashIcon,
   PencilSimpleIcon,
   MagnifyingGlassIcon,
+  CalendarBlankIcon,
+  MapPinIcon,
 } from "@phosphor-icons/react";
 
 function Skeleton({ className }: { className: string }) {
@@ -81,68 +83,69 @@ export default function EventsPage() {
     const lowerQuery = debouncedQuery.toLowerCase();
     return events.filter(
       (event) =>
-        event.title.toLowerCase().includes(lowerQuery) ||
-        event.description?.toLowerCase().includes(lowerQuery),
+        event.event_name.toLowerCase().includes(lowerQuery) ||
+        event.short_description?.toLowerCase().includes(lowerQuery) ||
+        event.club_name?.toLowerCase().includes(lowerQuery),
     );
   }, [events, debouncedQuery]);
 
   return (
     <CMSLayout
       title="Events"
-      description="Manage all your events"
+      description="Manage your club events and activities"
       actions={
         <Link href="/events/new" className="cursor-pointer">
-          <Button className="rounded-none h-8 text-xs cursor-pointer">
-            <PlusIcon className="mr-2 h-3 w-3" />
+          <Button className="rounded-none h-7 text-xs cursor-pointer px-3">
+            <PlusIcon className="mr-1.5 h-3 w-3" />
             Create Event
           </Button>
         </Link>
       }
     >
-      <div className="bg-zinc-50 min-h-screen space-y-4">
+      <div className="bg-zinc-50 space-y-2">
         <div className="relative max-w-sm">
-          <MagnifyingGlassIcon className="absolute left-3 top-1/2 h-3 w-3 -translate-y-1/2 text-muted-foreground" />
+          <MagnifyingGlassIcon className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
           <Input
             placeholder="Search events..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-9 h-9 text-sm rounded-none bg-white border-zinc-300 focus:border-zinc-800 focus:ring-0"
+            className="pl-8 h-8 text-xs rounded-none bg-white border-zinc-300 focus:border-zinc-800 focus:ring-0"
           />
         </div>
 
         {loading ? (
-          <div className="space-y-2">
+          <div className="space-y-1">
             {[1, 2, 3, 4, 5].map((i) => (
               <Card
                 key={i}
-                className="rounded-none border-zinc-200 bg-white shadow-sm gap-0 py-0"
+                className="rounded-none border-zinc-200 bg-white shadow-sm p-0"
               >
-                <CardContent className="flex items-center gap-3 p-3">
-                  <Skeleton className="h-12 w-12 shrink-0" />
-                  <div className="flex-1 space-y-2">
-                    <Skeleton className="h-4 w-1/3" />
-                    <Skeleton className="h-3 w-1/4" />
+                <CardContent className="flex items-center gap-2 p-2">
+                  <Skeleton className="h-10 w-10 shrink-0" />
+                  <div className="flex-1 space-y-1.5">
+                    <Skeleton className="h-3 w-1/3" />
+                    <Skeleton className="h-2 w-1/4" />
                   </div>
-                  <Skeleton className="h-8 w-24" />
+                  <Skeleton className="h-6 w-20" />
                 </CardContent>
               </Card>
             ))}
           </div>
         ) : filteredEvents.length === 0 ? (
-          <Card className="rounded-none border-zinc-200 bg-white shadow-sm gap-0 py-0">
-            <CardContent className="flex flex-col items-center justify-center py-8 text-center">
-              <h3 className="mt-2 font-medium text-foreground text-sm">
+          <Card className="rounded-none border-zinc-200 bg-white shadow-sm">
+            <CardContent className="flex flex-col items-center justify-center py-6 text-center">
+              <h3 className="mt-1 font-medium text-foreground text-xs">
                 {searchQuery ? "No events found" : "No events yet"}
               </h3>
-              <p className="mt-1 text-xs text-muted-foreground">
+              <p className="mt-0.5 text-[10px] text-muted-foreground">
                 {searchQuery
                   ? "Try adjusting your search query"
                   : "Create your first event to get started"}
               </p>
               {!searchQuery && (
-                <Link href="/events/new" className="mt-3 cursor-pointer">
-                  <Button className="rounded-none h-8 text-xs cursor-pointer">
-                    <PlusIcon className="mr-2 h-3 w-3" />
+                <Link href="/events/new" className="mt-2 cursor-pointer">
+                  <Button className="rounded-none h-7 text-[10px] cursor-pointer">
+                    <PlusIcon className="mr-1.5 h-3 w-3" />
                     Create Event
                   </Button>
                 </Link>
@@ -150,40 +153,58 @@ export default function EventsPage() {
             </CardContent>
           </Card>
         ) : (
-          <div className="space-y-2">
+          <div className="space-y-1">
             {filteredEvents.map((event) => (
               <Card
                 key={event.id}
-                className="rounded-none border-zinc-200 bg-white shadow-sm transition-all hover:border-zinc-300 hover:shadow-md gap-0 py-0"
+                className="rounded-none border-zinc-200 bg-white shadow-sm transition-all hover:border-zinc-300 hover:bg-zinc-50 p-0 group"
               >
-                <CardContent className="flex items-center gap-3 p-3">
-                  <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-none border border-zinc-200 bg-zinc-50">
-                    {event.image_path ? (
+                <CardContent className="flex items-center gap-2 p-2">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-none border border-zinc-200 bg-zinc-50">
+                    {event.poster_path ? (
                       <img
-                        src={`${API_URL}/${event.image_path}`}
-                        alt={event.title}
+                        src={`${API_URL}/${event.poster_path}`}
+                        alt={event.event_name}
                         className="h-full w-full object-cover"
                       />
                     ) : (
-                      <ImageIcon className="h-5 w-5 text-muted-foreground" />
+                      <ImageIcon className="h-4 w-4 text-muted-foreground" />
                     )}
                   </div>
 
                   <div className="flex-1 min-w-0">
-                    <h3 className="font-medium text-foreground truncate text-sm">
-                      {event.title}
-                    </h3>
-                    <p className="text-xs text-muted-foreground">
-                      {event.date}
-                    </p>
-                    {event.description && (
-                      <p className="mt-0.5 text-xs text-muted-foreground line-clamp-1">
-                        {event.description}
-                      </p>
-                    )}
+                    <div className="flex items-center gap-2">
+                      <h3 className="font-medium text-foreground truncate text-xs group-hover:text-zinc-900">
+                        {event.event_name}
+                      </h3>
+                      {(event.is_special_event === true ||
+                        event.is_special_event === 1) && (
+                        <span className="inline-flex items-center rounded-none bg-amber-50 px-1.5 py-0 text-[10px] font-medium text-amber-700 border border-amber-100">
+                          Special
+                        </span>
+                      )}
+                    </div>
+
+                    <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[10px] text-muted-foreground mt-0.5">
+                      <span className="flex items-center gap-1">
+                        <CalendarBlankIcon className="h-3 w-3" />
+                        {event.start_date_time}
+                      </span>
+                      {event.event_venue && (
+                        <span className="flex items-center gap-1">
+                          <MapPinIcon className="h-3 w-3" />
+                          {event.event_venue}
+                        </span>
+                      )}
+                      {event.club_name && (
+                        <span className="font-medium text-zinc-500">
+                          • {event.club_name}
+                        </span>
+                      )}
+                    </div>
                   </div>
 
-                  <div className="flex items-center gap-1">
+                  <div className="flex items-center">
                     <Link
                       href={`/events/${event.id}`}
                       className="cursor-pointer"
@@ -191,10 +212,9 @@ export default function EventsPage() {
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="h-7 w-7 rounded-none hover:bg-zinc-100 hover:border-zinc-300 border border-transparent cursor-pointer"
+                        className="h-6 w-6 rounded-none hover:bg-white hover:border-zinc-200 border border-transparent text-muted-foreground hover:text-foreground"
                       >
-                        <EyeIcon className="h-3.5 w-3.5" />
-                        <span className="sr-only">View</span>
+                        <EyeIcon className="h-3 w-3" />
                       </Button>
                     </Link>
                     <Link
@@ -204,20 +224,18 @@ export default function EventsPage() {
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="h-7 w-7 rounded-none hover:bg-zinc-100 hover:border-zinc-300 border border-transparent cursor-pointer"
+                        className="h-6 w-6 rounded-none hover:bg-white hover:border-zinc-200 border border-transparent text-muted-foreground hover:text-foreground"
                       >
-                        <PencilSimpleIcon className="h-3.5 w-3.5" />
-                        <span className="sr-only">Edit</span>
+                        <PencilSimpleIcon className="h-3 w-3" />
                       </Button>
                     </Link>
                     <Button
                       variant="ghost"
                       size="icon"
                       onClick={() => setDeleteId(event.id)}
-                      className="h-7 w-7 rounded-none text-destructive hover:text-destructive hover:bg-red-50 hover:border-red-100 border border-transparent cursor-pointer"
+                      className="h-6 w-6 rounded-none text-muted-foreground hover:text-red-600 hover:bg-red-50 border border-transparent cursor-pointer"
                     >
-                      <TrashIcon className="h-3.5 w-3.5" />
-                      <span className="sr-only">Delete</span>
+                      <TrashIcon className="h-3 w-3" />
                     </Button>
                   </div>
                 </CardContent>
@@ -230,22 +248,23 @@ export default function EventsPage() {
           open={deleteId !== null}
           onOpenChange={() => setDeleteId(null)}
         >
-          <AlertDialogContent className="rounded-none border-zinc-200 bg-white">
-            <AlertDialogHeader>
-              <AlertDialogTitle>Delete Event</AlertDialogTitle>
-              <AlertDialogDescription>
+          <AlertDialogContent className="rounded-none border-zinc-200 bg-white p-4 max-w-sm">
+            <AlertDialogHeader className="space-y-2">
+              <AlertDialogTitle className="text-sm">
+                Delete Event
+              </AlertDialogTitle>
+              <AlertDialogDescription className="text-xs">
                 Are you sure you want to delete this event? This will also
-                remove the associated media from storage. This action cannot be
-                undone.
+                remove the associated poster from storage.
               </AlertDialogDescription>
             </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel className="rounded-none border-zinc-200 bg-white hover:bg-zinc-50 cursor-pointer">
+            <AlertDialogFooter className="mt-4">
+              <AlertDialogCancel className="rounded-none border-zinc-200 bg-white hover:bg-zinc-50 h-7 text-xs cursor-pointer">
                 Cancel
               </AlertDialogCancel>
               <AlertDialogAction
                 onClick={handleDelete}
-                className="rounded-none bg-destructive text-destructive-foreground hover:bg-destructive/90 cursor-pointer"
+                className="rounded-none bg-red-600 text-white hover:bg-red-700 h-7 text-xs border border-red-700 cursor-pointer"
               >
                 Delete
               </AlertDialogAction>

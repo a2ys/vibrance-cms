@@ -20,6 +20,16 @@ import { API_URL } from "@/lib/config";
 import { compressImage } from "@/lib/utils";
 import Link from "next/link";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 type MediaType = "photos" | "videos";
 
@@ -32,26 +42,23 @@ interface UploadedFile {
 
 export default function UploadMediaPage() {
   const [activeTab, setActiveTab] = useState<MediaType>("photos");
-
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
   const [progress, setProgress] = useState({ current: 0, total: 0 });
   const [statusMessage, setStatusMessage] = useState("");
-
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
   const [previewMedia, setPreviewMedia] = useState<UploadedFile | null>(null);
+  const [showClearDialog, setShowClearDialog] = useState(false);
 
   const handleFileChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
       if (e.target.files && e.target.files.length > 0) {
         const newFiles = Array.from(e.target.files);
-
         const filteredFiles = newFiles.filter((file) => {
           if (activeTab === "photos") return file.type.startsWith("image/");
           if (activeTab === "videos") return file.type.startsWith("video/");
           return false;
         });
-
         setSelectedFiles((prev) => [...prev, ...filteredFiles]);
         e.target.value = "";
       }
@@ -66,6 +73,7 @@ export default function UploadMediaPage() {
   const clearAllFiles = useCallback(() => {
     setSelectedFiles([]);
     setProgress({ current: 0, total: 0 });
+    setShowClearDialog(false);
   }, []);
 
   const handleUpload = useCallback(async () => {
@@ -83,16 +91,12 @@ export default function UploadMediaPage() {
       try {
         if (activeTab === "photos") {
           setStatusMessage(`Compressing ${originalFile.name}...`);
-          await new Promise((r) => setTimeout(r, 50));
           try {
             fileToUpload = await compressImage(originalFile);
-          } catch (err) {
-            console.warn("Compression failed, using original.", err);
-          }
+          } catch {}
         }
 
         setStatusMessage(`Uploading ${fileToUpload.name}...`);
-
         const formData = new FormData();
         formData.append("file", fileToUpload);
         formData.append("folder", activeTab);
@@ -105,7 +109,6 @@ export default function UploadMediaPage() {
         if (res.ok) {
           const data = await res.json();
           successCount++;
-
           setUploadedFiles((prev) => [
             {
               name: originalFile.name,
@@ -116,22 +119,13 @@ export default function UploadMediaPage() {
             ...prev,
           ]);
         }
-      } catch (error) {
-        console.error(`Error processing ${originalFile.name}`, error);
-      }
-
+      } catch {}
       setProgress({ current: i + 1, total: selectedFiles.length });
     }
 
     setIsProcessing(false);
     setStatusMessage("");
-
-    if (successCount === selectedFiles.length) {
-      setSelectedFiles([]);
-    } else {
-      alert(`Complete. ${successCount}/${selectedFiles.length} successful.`);
-      setSelectedFiles([]);
-    }
+    setSelectedFiles([]);
   }, [selectedFiles, activeTab]);
 
   const filteredUploadedFiles = useMemo(
@@ -147,272 +141,278 @@ export default function UploadMediaPage() {
         <Link href="/media" className="cursor-pointer">
           <Button
             variant="outline"
-            className="rounded-none bg-white hover:bg-zinc-50 border-zinc-200 h-8 text-xs cursor-pointer"
+            className="rounded-none bg-white hover:bg-zinc-50 border-zinc-200 h-7 text-xs cursor-pointer px-2"
           >
-            <EyeIcon className="mr-2 h-3.5 w-3.5" />
+            <EyeIcon className="mr-1.5 h-3 w-3" />
             Browse Media
           </Button>
         </Link>
       }
     >
-      <div className="bg-zinc-50 min-h-screen">
-        <div className="grid gap-4 lg:grid-cols-3">
-          <div className="lg:col-span-2 space-y-4">
-            <Card className="rounded-none border-zinc-200 bg-white shadow-sm h-fit">
-              <CardHeader className="border-b border-zinc-100 pb-3 pt-4 px-4">
-                <CardTitle className="text-base">Upload New Media</CardTitle>
-                <p className="text-xs text-muted-foreground">
-                  Select files to upload. Bulk upload supported.
-                </p>
-              </CardHeader>
-              <CardContent className="pt-4 px-4 pb-4">
-                <Tabs
-                  value={activeTab}
-                  onValueChange={(v) => {
-                    setActiveTab(v as MediaType);
-                    setSelectedFiles([]);
-                  }}
+      <div className="bg-zinc-50 p-2 space-y-2">
+        <Card className="rounded-none border-zinc-200 bg-white shadow-sm h-fit">
+          <CardHeader className="border-b border-zinc-100 p-3 flex flex-row items-center justify-between space-y-0">
+            <div>
+              <CardTitle className="text-sm font-medium">
+                Upload New Media
+              </CardTitle>
+              <p className="text-[10px] text-muted-foreground">
+                Select files to upload.
+              </p>
+            </div>
+            <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground bg-zinc-50 px-2 py-1 border border-zinc-100">
+              <InfoIcon className="h-3 w-3" />
+              <span>
+                {activeTab === "photos"
+                  ? "Auto-WebP Conversion Active"
+                  : "Original Quality Upload"}
+              </span>
+            </div>
+          </CardHeader>
+          <CardContent className="p-3">
+            <Tabs
+              value={activeTab}
+              onValueChange={(v) => {
+                setActiveTab(v as MediaType);
+                setSelectedFiles([]);
+              }}
+            >
+              <TabsList className="grid w-full grid-cols-2 rounded-none bg-zinc-100 p-0.5 mb-3 h-8">
+                <TabsTrigger
+                  value="photos"
+                  className="gap-2 rounded-none data-[state=active]:bg-white data-[state=active]:shadow-sm text-xs cursor-pointer h-7"
                 >
-                  <TabsList className="grid w-full grid-cols-2 rounded-none bg-zinc-100 p-1 mb-4 h-9">
-                    <TabsTrigger
-                      value="photos"
-                      className="gap-2 rounded-none data-[state=active]:bg-white data-[state=active]:shadow-sm text-xs cursor-pointer"
-                    >
-                      <ImageSquareIcon className="h-3.5 w-3.5" />
-                      Photos
-                    </TabsTrigger>
-                    <TabsTrigger
-                      value="videos"
-                      className="gap-2 rounded-none data-[state=active]:bg-white data-[state=active]:shadow-sm text-xs cursor-pointer"
-                    >
-                      <VideoCameraIcon className="h-3.5 w-3.5" />
-                      Videos
-                    </TabsTrigger>
-                  </TabsList>
+                  <ImageSquareIcon className="h-3.5 w-3.5" />
+                  Photos
+                </TabsTrigger>
+                <TabsTrigger
+                  value="videos"
+                  className="gap-2 rounded-none data-[state=active]:bg-white data-[state=active]:shadow-sm text-xs cursor-pointer h-7"
+                >
+                  <VideoCameraIcon className="h-3.5 w-3.5" />
+                  Videos
+                </TabsTrigger>
+              </TabsList>
 
-                  <div className="mt-3">
-                    <label
-                      className={`flex flex-col items-center justify-center border-2 border-dashed p-6 transition-colors cursor-pointer bg-zinc-50/50 rounded-none ${isProcessing ? "opacity-50 pointer-events-none" : "hover:bg-zinc-50 hover:border-zinc-400 border-zinc-300"}`}
+              <div className="mt-2">
+                <label
+                  className={`flex flex-col items-center justify-center border border-dashed p-4 transition-colors cursor-pointer bg-zinc-50/50 rounded-none ${
+                    isProcessing
+                      ? "opacity-50 pointer-events-none"
+                      : "hover:bg-zinc-50 hover:border-zinc-400 border-zinc-300"
+                  }`}
+                >
+                  <UploadSimpleIcon className="mb-1 h-5 w-5 text-muted-foreground" />
+                  <span className="text-xs text-muted-foreground font-medium">
+                    Click to select {activeTab}
+                  </span>
+                  <input
+                    type="file"
+                    className="hidden"
+                    multiple
+                    accept={activeTab === "photos" ? "image/*" : "video/*"}
+                    onChange={handleFileChange}
+                    disabled={isProcessing}
+                  />
+                </label>
+              </div>
+
+              {selectedFiles.length > 0 && (
+                <div className="mt-3 space-y-2">
+                  <div className="flex items-center justify-between border-b border-zinc-100 pb-1">
+                    <h3 className="text-xs font-medium">
+                      Selected ({selectedFiles.length})
+                    </h3>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setShowClearDialog(true)}
+                      disabled={isProcessing}
+                      className="text-destructive hover:text-destructive h-5 px-1.5 text-[10px] cursor-pointer"
                     >
-                      <UploadSimpleIcon className="mb-2 h-6 w-6 text-muted-foreground" />
-                      <span className="text-sm text-muted-foreground font-medium">
-                        Click to select {activeTab}
-                      </span>
-                      <span className="text-[10px] text-muted-foreground mt-0.5">
-                        {activeTab === "photos"
-                          ? "Auto-converted to WebP"
-                          : "Original quality upload"}
-                      </span>
-                      <input
-                        type="file"
-                        className="hidden"
-                        multiple
-                        accept={activeTab === "photos" ? "image/*" : "video/*"}
-                        onChange={handleFileChange}
-                        disabled={isProcessing}
-                      />
-                    </label>
+                      Clear All
+                    </Button>
                   </div>
 
-                  {selectedFiles.length > 0 && (
-                    <div className="mt-4 space-y-3">
-                      <div className="flex items-center justify-between">
-                        <h3 className="text-sm font-medium">
-                          Selected Files ({selectedFiles.length})
-                        </h3>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={clearAllFiles}
-                          disabled={isProcessing}
-                          className="text-destructive hover:text-destructive h-7 px-2 text-xs cursor-pointer"
-                        >
-                          Clear All
-                        </Button>
-                      </div>
-
-                      <div className="grid gap-1.5 max-h-60 overflow-y-auto pr-1 border border-zinc-100 bg-zinc-50 p-1.5">
-                        {selectedFiles.map((file, idx) => (
-                          <div
-                            key={idx}
-                            className="flex items-center justify-between bg-white border border-zinc-200 p-1.5 text-sm"
-                          >
-                            <div className="flex items-center gap-2 overflow-hidden">
-                              <div className="h-7 w-7 bg-zinc-100 flex items-center justify-center shrink-0">
-                                {activeTab === "photos" ? (
-                                  <ImageSquareIcon className="text-zinc-400 h-3.5 w-3.5" />
-                                ) : (
-                                  <VideoCameraIcon className="text-zinc-400 h-3.5 w-3.5" />
-                                )}
-                              </div>
-                              <div className="min-w-0">
-                                <p className="truncate font-medium text-zinc-700 text-xs">
-                                  {file.name}
-                                </p>
-                                <p className="text-[10px] text-muted-foreground">
-                                  {(file.size / 1024).toFixed(1)} KB
-                                </p>
-                              </div>
-                            </div>
-                            {!isProcessing && (
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={() => removeFile(idx)}
-                                className="h-6 w-6 text-muted-foreground hover:text-destructive cursor-pointer"
-                              >
-                                <XIcon className="h-3.5 w-3.5" />
-                              </Button>
-                            )}
-                            {isProcessing && idx < progress.current && (
-                              <CheckCircleIcon className="h-4 w-4 text-green-500" />
-                            )}
-                            {isProcessing && idx === progress.current && (
-                              <SpinnerIcon className="h-4 w-4 animate-spin text-zinc-500" />
-                            )}
-                          </div>
-                        ))}
-                      </div>
-
-                      <div className="space-y-2">
-                        {isProcessing && (
-                          <div className="space-y-1">
-                            <div className="flex justify-between text-[10px] text-muted-foreground">
-                              <span>{statusMessage}</span>
-                              <span>
-                                {Math.round(
-                                  (progress.current / progress.total) * 100,
-                                )}
-                                %
-                              </span>
-                            </div>
-                            <div className="w-full bg-zinc-100 h-1.5 rounded-full overflow-hidden">
-                              <div
-                                className="bg-zinc-900 h-full transition-all duration-300"
-                                style={{
-                                  width: `${(progress.current / progress.total) * 100}%`,
-                                }}
-                              />
-                            </div>
-                          </div>
-                        )}
-
-                        <Button
-                          onClick={handleUpload}
-                          disabled={isProcessing}
-                          className="w-full rounded-none h-8 text-xs cursor-pointer"
-                        >
-                          {isProcessing
-                            ? "Processing..."
-                            : `Upload ${selectedFiles.length} Files`}
-                        </Button>
-                      </div>
-                    </div>
-                  )}
-                </Tabs>
-              </CardContent>
-            </Card>
-
-            {filteredUploadedFiles.length > 0 && (
-              <Card className="rounded-none border-zinc-200 bg-white shadow-sm">
-                <CardHeader className="border-b border-zinc-100 pb-3 pt-4 px-4">
-                  <CardTitle className="text-base">Session Uploads</CardTitle>
-                </CardHeader>
-                <CardContent className="pt-4 px-4 pb-4">
-                  <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                    {filteredUploadedFiles.map((file, idx) => (
+                  <div className="grid gap-1 max-h-48 overflow-y-auto pr-1">
+                    {selectedFiles.map((file, idx) => (
                       <div
                         key={idx}
-                        className="group relative border border-zinc-200 bg-zinc-50"
+                        className="flex items-center justify-between bg-zinc-50 border border-zinc-100 p-1.5"
                       >
-                        <div className="aspect-square bg-zinc-100 flex items-center justify-center relative overflow-hidden">
-                          {file.type === "photos" ? (
-                            <img
-                              src={`${API_URL}/${file.path}`}
-                              alt={file.name}
-                              className="h-full w-full object-cover"
-                            />
-                          ) : (
-                            <VideoCameraIcon className="h-8 w-8 text-muted-foreground" />
-                          )}
-                          <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                            <Button
-                              size="sm"
-                              variant="secondary"
-                              className="rounded-none h-7 text-xs cursor-pointer"
-                              onClick={() => setPreviewMedia(file)}
-                            >
-                              <EyeIcon className="mr-1 h-3 w-3" /> Preview
-                            </Button>
+                        <div className="flex items-center gap-2 overflow-hidden">
+                          <div className="h-6 w-6 bg-white border border-zinc-200 flex items-center justify-center shrink-0">
+                            {activeTab === "photos" ? (
+                              <ImageSquareIcon className="text-zinc-400 h-3 w-3" />
+                            ) : (
+                              <VideoCameraIcon className="text-zinc-400 h-3 w-3" />
+                            )}
+                          </div>
+                          <div className="min-w-0">
+                            <p className="truncate font-medium text-zinc-700 text-[10px]">
+                              {file.name}
+                            </p>
+                            <p className="text-[9px] text-muted-foreground">
+                              {(file.size / 1024).toFixed(1)} KB
+                            </p>
                           </div>
                         </div>
-                        <div className="p-2 bg-white border-t border-zinc-200">
-                          <p className="text-[10px] truncate font-medium">
-                            {file.name}
-                          </p>
-                          <p className="text-[9px] text-muted-foreground">
-                            {(file.size / 1024).toFixed(1)} KB
-                          </p>
+                        <div className="flex items-center gap-2">
+                          {isProcessing && idx < progress.current && (
+                            <CheckCircleIcon className="h-3.5 w-3.5 text-green-500" />
+                          )}
+                          {isProcessing && idx === progress.current && (
+                            <SpinnerIcon className="h-3.5 w-3.5 animate-spin text-zinc-500" />
+                          )}
+                          {!isProcessing && (
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => removeFile(idx)}
+                              className="h-5 w-5 text-muted-foreground hover:text-destructive cursor-pointer"
+                            >
+                              <XIcon className="h-3 w-3" />
+                            </Button>
+                          )}
                         </div>
                       </div>
                     ))}
                   </div>
-                </CardContent>
-              </Card>
-            )}
-          </div>
 
-          <div className="space-y-4">
-            <Card className="rounded-none border-zinc-200 bg-white shadow-sm h-fit">
-              <CardHeader className="border-b border-zinc-100 pb-3 pt-4 px-4">
-                <CardTitle className="flex items-center gap-2 text-sm">
-                  <InfoIcon className="h-4 w-4" />
-                  Info
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="pt-4 px-4 pb-4 space-y-3 text-xs text-muted-foreground">
-                <ul className="list-disc pl-4 space-y-1.5">
-                  <li>
-                    <strong>Photos:</strong> Automatically converted to WebP
-                    (80% quality) to save space.
-                  </li>
-                  <li>
-                    <strong>Videos:</strong> Uploaded in original quality.
-                  </li>
-                </ul>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
+                  <div className="space-y-2 pt-2">
+                    {isProcessing && (
+                      <div className="space-y-1">
+                        <div className="flex justify-between text-[10px] text-muted-foreground">
+                          <span>{statusMessage}</span>
+                          <span>
+                            {Math.round(
+                              (progress.current / progress.total) * 100,
+                            )}
+                            %
+                          </span>
+                        </div>
+                        <div className="w-full bg-zinc-100 h-1 rounded-none overflow-hidden">
+                          <div
+                            className="bg-zinc-900 h-full transition-all duration-300"
+                            style={{
+                              width: `${(progress.current / progress.total) * 100}%`,
+                            }}
+                          />
+                        </div>
+                      </div>
+                    )}
+
+                    <Button
+                      onClick={handleUpload}
+                      disabled={isProcessing}
+                      className="w-full rounded-none h-7 text-xs cursor-pointer"
+                    >
+                      {isProcessing ? (
+                        <>
+                          <SpinnerIcon className="mr-2 animate-spin" />{" "}
+                          Processing...
+                        </>
+                      ) : (
+                        `Upload ${selectedFiles.length} Files`
+                      )}
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </Tabs>
+          </CardContent>
+        </Card>
+
+        {filteredUploadedFiles.length > 0 && (
+          <Card className="rounded-none border-zinc-200 bg-white shadow-sm h-fit">
+            <CardHeader className="border-b border-zinc-100 p-3">
+              <CardTitle className="text-sm font-medium">
+                Session Uploads
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-3">
+              <div className="grid gap-2 grid-cols-2 sm:grid-cols-4 md:grid-cols-5">
+                {filteredUploadedFiles.map((file, idx) => (
+                  <div
+                    key={idx}
+                    className="group relative border border-zinc-200 bg-zinc-50"
+                  >
+                    <div className="aspect-square bg-zinc-100 flex items-center justify-center relative overflow-hidden">
+                      {file.type === "photos" ? (
+                        <img
+                          src={`${API_URL}/${file.path}`}
+                          alt={file.name}
+                          className="h-full w-full object-cover"
+                        />
+                      ) : (
+                        <VideoCameraIcon className="h-6 w-6 text-muted-foreground" />
+                      )}
+                      <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                        <Button
+                          size="sm"
+                          variant="secondary"
+                          className="rounded-none h-6 px-2 text-[10px] cursor-pointer"
+                          onClick={() => setPreviewMedia(file)}
+                        >
+                          <EyeIcon className="mr-1 h-3 w-3" /> Preview
+                        </Button>
+                      </div>
+                    </div>
+                    <div className="p-1.5 bg-white border-t border-zinc-200">
+                      <p className="text-[10px] truncate font-medium">
+                        {file.name}
+                      </p>
+                      <p className="text-[9px] text-muted-foreground">
+                        {(file.size / 1024).toFixed(1)} KB
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        <AlertDialog open={showClearDialog} onOpenChange={setShowClearDialog}>
+          <AlertDialogContent className="rounded-none border-zinc-200 bg-white shadow-lg p-4 max-w-sm">
+            <AlertDialogHeader className="space-y-1">
+              <AlertDialogTitle className="text-sm">
+                Clear All?
+              </AlertDialogTitle>
+              <AlertDialogDescription className="text-xs">
+                This will remove all selected files from the queue.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter className="mt-3">
+              <AlertDialogCancel className="rounded-none border-zinc-200 bg-white hover:bg-zinc-50 h-7 text-xs cursor-pointer">
+                Cancel
+              </AlertDialogCancel>
+              <AlertDialogAction
+                onClick={clearAllFiles}
+                className="rounded-none bg-destructive text-destructive-foreground hover:bg-destructive/90 h-7 text-xs cursor-pointer"
+              >
+                Clear
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
 
         <Dialog
           open={previewMedia !== null}
           onOpenChange={() => setPreviewMedia(null)}
         >
-          <DialogContent
-            className="max-w-6xl h-[85vh] p-0 gap-0 rounded-none border-zinc-800 bg-zinc-950 flex flex-col overflow-hidden focus:outline-none [&>button]:hidden"
-            aria-describedby={undefined}
-          >
+          <DialogContent className="max-w-4xl h-[80vh] p-0 gap-0 rounded-none border-zinc-800 bg-zinc-950 flex flex-col overflow-hidden focus:outline-none [&>button]:hidden">
             {previewMedia && (
               <>
                 <DialogTitle className="sr-only">
                   Preview: {previewMedia.name}
                 </DialogTitle>
-
-                <div className="flex items-center justify-between px-3 py-2 border-b border-zinc-800 bg-zinc-900/50">
+                <div className="flex items-center justify-between px-3 py-1.5 border-b border-zinc-800 bg-zinc-900/50">
                   <div className="flex items-center gap-2 overflow-hidden">
-                    <div className="p-1 bg-zinc-800 rounded-sm">
-                      {previewMedia.type === "videos" ? (
-                        <VideoCameraIcon className="h-3.5 w-3.5 text-zinc-400" />
-                      ) : (
-                        <ImageSquareIcon className="h-3.5 w-3.5 text-zinc-400" />
-                      )}
-                    </div>
-                    <span className="text-xs font-medium text-zinc-200 truncate font-mono">
+                    <span className="text-[10px] font-medium text-zinc-200 truncate font-mono">
                       {previewMedia.name}
                     </span>
                   </div>
-
                   <div className="flex items-center gap-1">
                     <a
                       href={`${API_URL}/${previewMedia.path}`}
@@ -423,25 +423,23 @@ export default function UploadMediaPage() {
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="h-7 w-7 text-zinc-400 hover:text-white hover:bg-zinc-800 rounded-none cursor-pointer"
+                        className="h-6 w-6 text-zinc-400 hover:text-white hover:bg-zinc-800 rounded-none cursor-pointer"
                       >
-                        <DownloadSimpleIcon className="h-3.5 w-3.5" />
+                        <DownloadSimpleIcon className="h-3 w-3" />
                       </Button>
                     </a>
                     <Button
                       variant="ghost"
                       size="icon"
                       onClick={() => setPreviewMedia(null)}
-                      className="h-7 w-7 text-zinc-400 hover:text-white hover:bg-zinc-800 rounded-none cursor-pointer"
+                      className="h-6 w-6 text-zinc-400 hover:text-white hover:bg-zinc-800 rounded-none cursor-pointer"
                     >
-                      <XIcon className="h-3.5 w-3.5" />
+                      <XIcon className="h-3 w-3" />
                     </Button>
                   </div>
                 </div>
-
-                <div className="flex-1 relative flex items-center justify-center bg-black/40 p-4 overflow-hidden">
-                  {previewMedia.type === "videos" ||
-                  previewMedia.path.endsWith(".mp4") ? (
+                <div className="flex-1 relative flex items-center justify-center bg-black/40 p-2 overflow-hidden">
+                  {previewMedia.type === "videos" ? (
                     <video
                       src={`${API_URL}/${previewMedia.path}`}
                       controls
@@ -455,17 +453,6 @@ export default function UploadMediaPage() {
                       className="max-h-full max-w-full object-contain shadow-2xl"
                     />
                   )}
-                </div>
-
-                <div className="flex items-center gap-4 px-3 py-2 border-t border-zinc-800 bg-zinc-900/50 text-[10px] text-zinc-500">
-                  <div className="flex items-center gap-1.5">
-                    <InfoIcon className="h-3 w-3" />
-                    <span>File Details</span>
-                  </div>
-                  <div className="h-2.5 w-px bg-zinc-800" />
-                  <span>Size: {(previewMedia.size / 1024).toFixed(1)} KB</span>
-                  <div className="h-2.5 w-px bg-zinc-800" />
-                  <span>Status: Uploaded just now</span>
                 </div>
               </>
             )}

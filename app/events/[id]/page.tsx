@@ -11,10 +11,15 @@ import {
   TrashIcon,
   CalendarBlankIcon,
   ImageIcon,
-  VideoIcon,
+  MapPinIcon,
+  UsersIcon,
+  CurrencyInrIcon,
+  LinkIcon,
+  BuildingsIcon,
 } from "@phosphor-icons/react";
 import { API_URL } from "@/lib/config";
 import type { Event } from "@/lib/types";
+import { formatDate } from "@/lib/utils";
 import Link from "next/link";
 import {
   AlertDialog,
@@ -41,16 +46,23 @@ export default function EventDetailPage() {
   useEffect(() => {
     async function fetchEvent() {
       try {
-        const res = await fetch(`${API_URL}/events`);
+        const res = await fetch(`${API_URL}/events/${params.id}`);
+        if (!res.ok) {
+          setEvent(null);
+          return;
+        }
         const data = await res.json();
-        const foundEvent = data.find((e: Event) => e.id === Number(params.id));
-        setEvent(foundEvent || null);
-      } catch {
+        setEvent(data);
+      } catch (err) {
+        setEvent(null);
       } finally {
         setLoading(false);
       }
     }
-    fetchEvent();
+
+    if (params.id) {
+      fetchEvent();
+    }
   }, [params.id]);
 
   const handleDelete = useCallback(async () => {
@@ -64,30 +76,32 @@ export default function EventDetailPage() {
   if (loading) {
     return (
       <CMSLayout title="Loading..." description="Please wait">
-        <div className="grid gap-4 lg:grid-cols-2 bg-zinc-50 min-h-screen">
-          <Card className="rounded-none border-zinc-200 bg-white shadow-sm h-fit">
-            <CardHeader className="border-b border-zinc-100 pb-3 pt-4 px-4">
-              <Skeleton className="h-5 w-24" />
+        <div className="grid gap-2 lg:grid-cols-3 bg-zinc-50 p-2">
+          <Card className="rounded-none border-zinc-200 bg-white shadow-sm h-fit lg:col-span-1 p-0">
+            <CardHeader className="p-3 border-b border-zinc-100">
+              <Skeleton className="h-4 w-24" />
             </CardHeader>
-            <CardContent className="pt-4 px-4 pb-4">
-              <Skeleton className="aspect-video w-full" />
+            <CardContent className="p-3">
+              <Skeleton className="aspect-square w-full" />
             </CardContent>
           </Card>
-          <Card className="rounded-none border-zinc-200 bg-white shadow-sm h-fit">
-            <CardHeader className="border-b border-zinc-100 pb-3 pt-4 px-4">
-              <Skeleton className="h-5 w-32" />
+          <Card className="rounded-none border-zinc-200 bg-white shadow-sm h-fit lg:col-span-2 p-0">
+            <CardHeader className="p-3 border-b border-zinc-100">
+              <Skeleton className="h-4 w-32" />
             </CardHeader>
-            <CardContent className="space-y-4 pt-4 px-4 pb-4">
-              <div className="space-y-1">
-                <Skeleton className="h-3 w-12" />
+            <CardContent className="space-y-4 p-3">
+              <div className="space-y-2">
+                <Skeleton className="h-3 w-16" />
                 <Skeleton className="h-6 w-3/4" />
               </div>
-              <div className="space-y-1">
-                <Skeleton className="h-3 w-12" />
-                <Skeleton className="h-5 w-1/3" />
+              <div className="grid grid-cols-2 gap-3">
+                <Skeleton className="h-10 w-full" />
+                <Skeleton className="h-10 w-full" />
+                <Skeleton className="h-10 w-full" />
+                <Skeleton className="h-10 w-full" />
               </div>
-              <div className="space-y-1">
-                <Skeleton className="h-3 w-16" />
+              <div className="space-y-2">
+                <Skeleton className="h-3 w-20" />
                 <Skeleton className="h-24 w-full" />
               </div>
             </CardContent>
@@ -100,17 +114,17 @@ export default function EventDetailPage() {
   if (!event) {
     return (
       <CMSLayout title="Event Not Found" description="The event does not exist">
-        <Card className="rounded-none border-zinc-200 bg-white shadow-sm">
-          <CardContent className="flex flex-col items-center justify-center py-12 text-center">
-            <h3 className="mt-4 font-medium text-foreground">
+        <Card className="rounded-none border-zinc-200 bg-white shadow-sm mx-2 mt-2">
+          <CardContent className="flex flex-col items-center justify-center py-8 text-center">
+            <h3 className="mt-2 font-medium text-foreground text-sm">
               Event not found
             </h3>
-            <p className="mt-1 text-sm text-muted-foreground">
+            <p className="mt-1 text-xs text-muted-foreground">
               The event you are looking for does not exist or has been deleted.
             </p>
-            <Link href="/events" className="mt-4 cursor-pointer">
-              <Button className="rounded-none cursor-pointer">
-                <ArrowLeftIcon className="mr-2 h-4 w-4" />
+            <Link href="/events" className="mt-3 cursor-pointer">
+              <Button className="rounded-none cursor-pointer h-8 text-xs">
+                <ArrowLeftIcon className="mr-2 h-3.5 w-3.5" />
                 Back to Events
               </Button>
             </Link>
@@ -120,143 +134,208 @@ export default function EventDetailPage() {
     );
   }
 
-  const isVideo = event.image_path?.includes("video");
-
   return (
     <CMSLayout
-      title={event.title}
-      description={`Event on ${event.date}`}
+      title={event.event_name}
+      description={`Managed by ${event.club_name || "Unknown Club"}`}
       actions={
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1">
           <Link href="/events" className="cursor-pointer">
             <Button
               variant="outline"
-              className="rounded-none bg-white hover:bg-zinc-50 border-zinc-200 h-8 text-xs cursor-pointer"
+              className="rounded-none bg-white hover:bg-zinc-50 border-zinc-200 h-7 text-xs cursor-pointer px-2"
             >
-              <ArrowLeftIcon className="mr-2 h-3.5 w-3.5" />
+              <ArrowLeftIcon className="mr-1.5 h-3 w-3" />
               Back
             </Button>
           </Link>
           <Link href={`/events/${event.id}/edit`} className="cursor-pointer">
             <Button
               variant="outline"
-              className="rounded-none bg-white hover:bg-zinc-50 border-zinc-200 h-8 text-xs cursor-pointer"
+              className="rounded-none bg-white hover:bg-zinc-50 border-zinc-200 h-7 text-xs cursor-pointer px-2"
             >
-              <PencilSimpleIcon className="mr-2 h-3.5 w-3.5" />
+              <PencilSimpleIcon className="mr-1.5 h-3 w-3" />
               Edit
             </Button>
           </Link>
           <Button
             onClick={() => setShowDeleteDialog(true)}
             variant="destructive"
-            className="rounded-none h-8 text-xs cursor-pointer"
+            className="rounded-none h-7 text-xs cursor-pointer px-2"
           >
-            <TrashIcon className="mr-2 h-3.5 w-3.5" />
+            <TrashIcon className="mr-1.5 h-3 w-3" />
             Delete
           </Button>
         </div>
       }
     >
-      <div className="grid gap-4 lg:grid-cols-2 bg-zinc-50 min-h-screen">
-        <Card className="rounded-none border-zinc-200 bg-white shadow-sm h-fit">
-          <CardHeader className="border-b border-zinc-100 pb-3 pt-4 px-4">
-            <CardTitle className="flex items-center gap-2 text-sm font-medium">
-              {isVideo ? (
-                <>
-                  <VideoIcon className="h-4 w-4" /> Video
-                </>
-              ) : (
-                <>
-                  <ImageIcon className="h-4 w-4" /> Poster
-                </>
-              )}
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="pt-4 px-4 pb-4">
-            {event.image_path ? (
-              isVideo ? (
-                <div className="flex aspect-video items-center justify-center bg-zinc-100 border border-zinc-200 rounded-none">
-                  <video
-                    src={`${API_URL}/${event.image_path}`}
-                    controls
-                    className="h-full w-full rounded-none"
-                  />
-                </div>
-              ) : (
-                <div className="border border-zinc-200 bg-zinc-50 p-1">
+      <div className="grid gap-2 lg:grid-cols-3 bg-zinc-50 p-2">
+        <div className="lg:col-span-1 space-y-2">
+          <Card className="rounded-none border-zinc-200 bg-white shadow-sm h-fit">
+            <CardHeader className="border-b border-zinc-100 p-3">
+              <CardTitle className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                <ImageIcon className="h-3.5 w-3.5" /> Poster Preview
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-0">
+              {event.poster_path ? (
+                <div className="bg-zinc-100 aspect-square flex items-center justify-center overflow-hidden">
                   <img
-                    src={`${API_URL}/${event.image_path}`}
-                    alt={event.title}
-                    className="w-full rounded-none object-cover"
+                    src={`${API_URL}/${event.poster_path}`}
+                    alt={event.event_name}
+                    className="w-full h-full object-contain"
                   />
                 </div>
-              )
-            ) : (
-              <div className="flex aspect-video items-center justify-center bg-zinc-50 border border-dashed border-zinc-300 rounded-none">
-                <div className="text-center">
-                  <ImageIcon className="mx-auto h-8 w-8 text-muted-foreground/30" />
-                  <p className="mt-1 text-xs text-muted-foreground">
-                    No media attached
-                  </p>
+              ) : (
+                <div className="flex aspect-square items-center justify-center bg-zinc-50 border-dashed border-zinc-200">
+                  <div className="text-center p-4">
+                    <ImageIcon className="mx-auto h-6 w-6 text-muted-foreground/30" />
+                    <p className="mt-1 text-[10px] text-muted-foreground">
+                      No media attached
+                    </p>
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+
+        <div className="lg:col-span-2 space-y-2">
+          <Card className="rounded-none border-zinc-200 bg-white shadow-sm h-fit">
+            <CardHeader className="border-b border-zinc-100 p-3">
+              <CardTitle className="text-sm font-medium">
+                Event Information
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4 p-4">
+              <div className="grid gap-0.5">
+                <p className="text-[10px] font-bold uppercase tracking-wide text-muted-foreground">
+                  Event Name
+                </p>
+                <h2 className="text-xl font-semibold text-foreground tracking-tight">
+                  {event.event_name}
+                </h2>
+                {event.club_name && (
+                  <div className="flex items-center gap-2 mt-1">
+                    <span className="inline-flex items-center gap-1.5 rounded-none bg-zinc-100 px-1.5 py-0.5 text-[10px] font-medium text-zinc-700">
+                      <BuildingsIcon className="h-3 w-3" />
+                      {event.club_name}
+                    </span>
+                    {(event.is_special_event === true ||
+                      event.is_special_event === 1) && (
+                      <span className="inline-flex items-center rounded-none bg-amber-50 border border-amber-200 px-1.5 py-0.5 text-[10px] font-medium text-amber-700">
+                        Special Event
+                      </span>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              <div className="grid gap-4 sm:grid-cols-2 border-t border-zinc-50 pt-3">
+                <div className="space-y-3">
+                  <div className="grid gap-0.5">
+                    <p className="text-[10px] font-bold uppercase tracking-wide text-muted-foreground flex items-center gap-1">
+                      <CalendarBlankIcon className="h-3 w-3" /> Start Time
+                    </p>
+                    <p className="text-sm font-medium text-zinc-800">
+                      {formatDate(event.start_date_time)}
+                    </p>
+                  </div>
+                  {event.end_date_time && (
+                    <div className="grid gap-0.5">
+                      <p className="text-[10px] font-bold uppercase tracking-wide text-muted-foreground flex items-center gap-1">
+                        <CalendarBlankIcon className="h-3 w-3" /> End Time
+                      </p>
+                      <p className="text-sm font-medium text-zinc-800">
+                        {formatDate(event.end_date_time)}
+                      </p>
+                    </div>
+                  )}
+                  <div className="grid gap-0.5">
+                    <p className="text-[10px] font-bold uppercase tracking-wide text-muted-foreground flex items-center gap-1">
+                      <MapPinIcon className="h-3 w-3" /> Venue
+                    </p>
+                    <p className="text-sm font-medium text-zinc-800">
+                      {event.event_venue || "TBD"}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="space-y-3">
+                  <div className="grid gap-0.5">
+                    <p className="text-[10px] font-bold uppercase tracking-wide text-muted-foreground flex items-center gap-1">
+                      <CurrencyInrIcon className="h-3 w-3" /> Price
+                    </p>
+                    <p className="text-sm font-medium text-zinc-800">
+                      {event.price_per_person
+                        ? `₹${event.price_per_person}`
+                        : "Free"}
+                    </p>
+                  </div>
+                  <div className="grid gap-0.5">
+                    <p className="text-[10px] font-bold uppercase tracking-wide text-muted-foreground flex items-center gap-1">
+                      <UsersIcon className="h-3 w-3" /> Team Size
+                    </p>
+                    <p className="text-sm font-medium text-zinc-800">
+                      {event.team_size === "1"
+                        ? `${event.team_size} Member`
+                        : `${event.team_size} Members`}
+                    </p>
+                  </div>
+                  {event.registration_link && (
+                    <div className="grid gap-0.5">
+                      <p className="text-[10px] font-bold uppercase tracking-wide text-muted-foreground flex items-center gap-1">
+                        <LinkIcon className="h-3 w-3" /> Registration
+                      </p>
+                      <a
+                        href={event.registration_link}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-sm font-medium text-blue-600 hover:underline truncate block cursor-pointer"
+                      >
+                        {event.registration_link}
+                      </a>
+                    </div>
+                  )}
                 </div>
               </div>
-            )}
-          </CardContent>
-        </Card>
 
-        <Card className="rounded-none border-zinc-200 bg-white shadow-sm h-fit">
-          <CardHeader className="border-b border-zinc-100 pb-3 pt-4 px-4">
-            <CardTitle className="text-sm font-medium">Event Details</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4 pt-4 px-4 pb-4">
-            <div className="grid gap-1">
-              <p className="text-[10px] font-bold uppercase tracking-wide text-muted-foreground">
-                Title
-              </p>
-              <p className="text-base font-medium text-foreground">
-                {event.title}
-              </p>
-            </div>
-
-            <div className="grid gap-1">
-              <p className="text-[10px] font-bold uppercase tracking-wide text-muted-foreground">
-                Date
-              </p>
-              <div className="flex items-center gap-2 text-foreground text-sm">
-                <CalendarBlankIcon className="h-4 w-4 text-muted-foreground" />
-                {event.date}
+              <div className="grid gap-1 pt-3 border-t border-zinc-100">
+                <p className="text-[10px] font-bold uppercase tracking-wide text-muted-foreground">
+                  Description
+                </p>
+                <div className="rounded-none bg-zinc-50 border border-zinc-100 p-3 text-sm text-zinc-700 leading-relaxed whitespace-pre-wrap">
+                  {event.long_description ||
+                    event.short_description ||
+                    "No description provided"}
+                </div>
               </div>
-            </div>
-
-            <div className="grid gap-1">
-              <p className="text-[10px] font-bold uppercase tracking-wide text-muted-foreground">
-                Description
-              </p>
-              <div className="rounded-none border border-zinc-100 bg-zinc-50 p-3 text-sm text-foreground">
-                {event.description || "No description provided"}
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        </div>
       </div>
 
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-        <AlertDialogContent className="rounded-none border-zinc-200 bg-white shadow-lg">
-          <AlertDialogHeader>
-            <AlertDialogTitle>Delete Event</AlertDialogTitle>
-            <AlertDialogDescription>
-              Are you sure you want to delete &apos;{event.title}&apos;? This
-              will also remove the associated media from storage. This action
-              cannot be undone.
+        <AlertDialogContent className="rounded-none border-zinc-200 bg-white shadow-lg max-w-sm p-4">
+          <AlertDialogHeader className="space-y-1">
+            <AlertDialogTitle className="text-sm">
+              Delete Event
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-xs">
+              Are you sure you want to delete{" "}
+              <span className="font-medium text-foreground">
+                {event.event_name}
+              </span>
+              ? This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel className="rounded-none border-zinc-200 bg-white hover:bg-zinc-50 cursor-pointer">
+          <AlertDialogFooter className="mt-3">
+            <AlertDialogCancel className="rounded-none border-zinc-200 bg-white hover:bg-zinc-50 h-7 text-xs cursor-pointer">
               Cancel
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDelete}
-              className="rounded-none bg-destructive text-destructive-foreground hover:bg-destructive/90 cursor-pointer"
+              className="rounded-none bg-destructive text-destructive-foreground hover:bg-destructive/90 h-7 text-xs cursor-pointer"
             >
               Delete
             </AlertDialogAction>

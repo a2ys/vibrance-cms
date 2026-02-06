@@ -69,3 +69,24 @@ export const compressImage = async (file: File): Promise<File> => {
     reader.readAsDataURL(file);
   });
 };
+
+export function formatDate(dateString: string): string {
+  if (!dateString) return "";
+
+  const date = new Date(dateString);
+  if (isNaN(date.getTime())) return dateString;
+
+  const datePart = new Intl.DateTimeFormat("en-US", {
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+  }).format(date);
+
+  const timePart = new Intl.DateTimeFormat("en-US", {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: true,
+  }).format(date);
+
+  return `${datePart} - ${timePart}`;
+}

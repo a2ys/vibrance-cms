@@ -8,15 +8,68 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   UploadSimpleIcon,
   ArrowLeftIcon,
   XIcon,
   SpinnerIcon,
+  ImageIcon,
 } from "@phosphor-icons/react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { API_URL } from "@/lib/config";
 import type { Event } from "@/lib/types";
 import Link from "next/link";
+import { compressImage } from "@/lib/utils";
+
+const EVENT_TYPES = [
+  "Game",
+  "Entertainment",
+  "Hackathon",
+  "Competition",
+  "Workshop",
+];
+
+const EVENT_FOR_OPTIONS = ["VITian", "Non VITian"];
+
+type EventFormData = {
+  event_name: string;
+  club_name: string;
+  event_type: string;
+  event_for: string;
+  start_date_time: string;
+  end_date_time: string;
+  price_per_person: string;
+  participation_type: string;
+  event_venue: string;
+  short_description: string;
+  long_description: string;
+  is_special_event: boolean;
+  registration_link: string;
+  team_size: string;
+  poster_path: string;
+};
+
+const toInputDate = (dateStr?: string) => {
+  if (!dateStr) return "";
+  return dateStr.replace(" ", "T").slice(0, 16);
+};
 
 function Skeleton({ className }: { className: string }) {
   return <div className={`animate-pulse bg-zinc-200 ${className}`} />;
@@ -25,17 +78,33 @@ function Skeleton({ className }: { className: string }) {
 export default function EditEventPage() {
   const params = useParams();
   const router = useRouter();
+
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [event, setEvent] = useState<Event | null>(null);
-  const [title, setTitle] = useState("");
-  const [date, setDate] = useState("");
-  const [description, setDescription] = useState("");
+  const [isCompressing, setIsCompressing] = useState(false);
+  const [showSaveDialog, setShowSaveDialog] = useState(false);
+
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
-  const [removeExisting, setRemoveExisting] = useState(false);
 
-  // Cleanup object URLs to avoid memory leaks
+  const [formData, setFormData] = useState<EventFormData>({
+    event_name: "",
+    club_name: "",
+    event_type: "",
+    event_for: "",
+    start_date_time: "",
+    end_date_time: "",
+    price_per_person: "",
+    participation_type: "",
+    event_venue: "",
+    short_description: "",
+    long_description: "",
+    is_special_event: false,
+    registration_link: "",
+    team_size: "",
+    poster_path: "",
+  });
+
   useEffect(() => {
     return () => {
       if (preview && !preview.startsWith("data:")) {
@@ -47,37 +116,59 @@ export default function EditEventPage() {
   useEffect(() => {
     async function fetchEvent() {
       try {
-        const res = await fetch(`${API_URL}/events`);
-        const data = await res.json();
-        const foundEvent = data.find(
-          (e: Event) => String(e.id) === String(params.id),
-        );
+        const res = await fetch(`${API_URL}/events/${params.id}`);
+        if (!res.ok) throw new Error("Event not found");
 
-        if (foundEvent) {
-          setEvent(foundEvent);
-          setTitle(foundEvent.title);
-          setDate(foundEvent.date);
-          setDescription(foundEvent.description || "");
-        }
+        const data: Event = await res.json();
+
+        setFormData({
+          event_name: data.event_name ?? "",
+          club_name: data.club_name ?? "",
+          event_type: data.event_type ?? "",
+          event_for: data.event_for ?? "",
+          start_date_time: data.start_date_time ?? "",
+          end_date_time: data.end_date_time ?? "",
+          price_per_person:
+            data.price_per_person !== undefined
+              ? String(data.price_per_person)
+              : "",
+          participation_type: data.participation_type ?? "",
+          event_venue: data.event_venue ?? "",
+          short_description: data.short_description ?? "",
+          long_description: data.long_description ?? "",
+          is_special_event: Boolean(data.is_special_event),
+          registration_link: data.registration_link ?? "",
+          team_size: data.team_size ?? "",
+          poster_path: data.poster_path ?? "",
+        });
       } catch {
       } finally {
         setLoading(false);
       }
     }
-    fetchEvent();
+    if (params.id) fetchEvent();
   }, [params.id]);
 
   const handleFileChange = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
+    async (e: React.ChangeEvent<HTMLInputElement>) => {
       const selectedFile = e.target.files?.[0];
       if (selectedFile) {
-        setFile(selectedFile);
-        setRemoveExisting(false);
-        if (selectedFile.type.startsWith("image/")) {
-          const objectUrl = URL.createObjectURL(selectedFile);
-          setPreview(objectUrl);
-        } else {
+        try {
+          setIsCompressing(true);
+          const processedFile = await compressImage(selectedFile);
+          setFile(processedFile);
+
+          if (processedFile.type.startsWith("image/")) {
+            const objectUrl = URL.createObjectURL(processedFile);
+            setPreview(objectUrl);
+          } else {
+            setPreview(null);
+          }
+        } catch (error) {
+          setFile(null);
           setPreview(null);
+        } finally {
+          setIsCompressing(false);
         }
       }
     },
@@ -89,67 +180,67 @@ export default function EditEventPage() {
     setPreview(null);
   }, []);
 
-  const handleSubmit = useCallback(
-    async (e: React.FormEvent) => {
-      e.preventDefault();
-      setSaving(true);
+  const handleSaveClick = (e: React.FormEvent) => {
+    e.preventDefault();
+    setShowSaveDialog(true);
+  };
 
-      try {
-        const formData = new FormData();
-        formData.append("title", title);
-        formData.append("date", date);
-        formData.append("description", description);
+  const confirmSave = async () => {
+    if (isCompressing) return;
+    setSaving(true);
+    setShowSaveDialog(false);
 
-        if (file) {
-          formData.append("file", file);
-        }
+    try {
+      let finalPosterPath = formData.poster_path;
 
-        const res = await fetch(`${API_URL}/events/${params.id}`, {
-          method: "PUT",
-          body: formData,
+      if (file) {
+        const formDataUpload = new FormData();
+        formDataUpload.append("file", file);
+        const uploadRes = await fetch(`${API_URL}/media/upload`, {
+          method: "POST",
+          body: formDataUpload,
         });
-
-        if (res.ok) {
-          router.push("/events");
-        } else {
-          const err = await res.json();
-          alert("Error updating event: " + (err.error || "Unknown error"));
-        }
-      } catch {
-        alert("Failed to connect to server");
-      } finally {
-        setSaving(false);
+        if (!uploadRes.ok) throw new Error("Upload failed");
+        const uploadData = await uploadRes.json();
+        finalPosterPath = uploadData.key;
       }
-    },
-    [title, date, description, file, params.id, router],
-  );
+
+      const payload = {
+        ...formData,
+        poster_path: finalPosterPath,
+        start_date_time: formData.start_date_time?.replace("T", " ") + ":00",
+        end_date_time: formData.end_date_time?.replace("T", " ") + ":00",
+        price_per_person: Number(formData.price_per_person || 0),
+        is_special_event: formData.is_special_event ? 1 : 0,
+      };
+
+      const res = await fetch(`${API_URL}/events/${params.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      if (res.ok) {
+        router.push(`/events/${params.id}`);
+        router.refresh();
+      }
+    } catch {
+    } finally {
+      setSaving(false);
+    }
+  };
 
   if (loading) {
     return (
       <CMSLayout title="Loading..." description="Please wait">
-        <div className="bg-zinc-50 min-h-screen">
-          <Card className="max-w-2xl rounded-none border-zinc-200 bg-white shadow-sm">
-            <CardHeader className="border-b border-zinc-100 pb-3 pt-4 px-4">
-              <Skeleton className="h-6 w-32 mb-1" />
-              <Skeleton className="h-4 w-48" />
+        <div className="bg-zinc-50 p-2">
+          <Card className="max-w-3xl rounded-none border-zinc-200 bg-white shadow-sm p-0">
+            <CardHeader className="border-b border-zinc-100 p-3">
+              <Skeleton className="h-4 w-32 mb-1" />
+              <Skeleton className="h-3 w-48" />
             </CardHeader>
-            <CardContent className="pt-4 px-4 pb-4 space-y-4">
-              <div className="space-y-1.5">
-                <Skeleton className="h-3 w-20" />
-                <Skeleton className="h-9 w-full" />
-              </div>
-              <div className="space-y-1.5">
-                <Skeleton className="h-3 w-20" />
-                <Skeleton className="h-9 w-full" />
-              </div>
-              <div className="space-y-1.5">
-                <Skeleton className="h-3 w-24" />
-                <Skeleton className="h-24 w-full" />
-              </div>
-              <div className="space-y-1.5">
-                <Skeleton className="h-3 w-24" />
-                <Skeleton className="h-32 w-full" />
-              </div>
+            <CardContent className="p-3 space-y-4">
+              <Skeleton className="h-96 w-full" />
             </CardContent>
           </Card>
         </div>
@@ -157,189 +248,371 @@ export default function EditEventPage() {
     );
   }
 
-  if (!event) {
-    return (
-      <CMSLayout title="Event Not Found" description="The event does not exist">
-        <Card className="rounded-none border-zinc-200 bg-white shadow-sm">
-          <CardContent className="flex flex-col items-center justify-center py-12 text-center">
-            <p className="text-muted-foreground text-sm">Event not found</p>
-            <Link href="/events" className="mt-4 cursor-pointer">
-              <Button className="rounded-none cursor-pointer h-8 text-xs">
-                <ArrowLeftIcon className="mr-2 h-3.5 w-3.5" />
-                Back to Events
-              </Button>
-            </Link>
-          </CardContent>
-        </Card>
-      </CMSLayout>
-    );
-  }
+  if (!formData.event_name && !loading) return null;
 
   return (
     <CMSLayout
       title="Edit Event"
-      description={`Editing: ${event.title}`}
+      description={`Editing: ${formData.event_name}`}
       actions={
-        <Link href={`/events/${event.id}`} className="cursor-pointer">
+        <Link href={`/events/${params.id}`} className="cursor-pointer">
           <Button
             variant="outline"
-            className="rounded-none bg-white hover:bg-zinc-50 border-zinc-200 h-8 text-xs cursor-pointer"
+            className="rounded-none bg-white hover:bg-zinc-50 border-zinc-200 h-7 text-xs cursor-pointer px-2"
           >
-            <ArrowLeftIcon className="mr-2 h-3.5 w-3.5" />
+            <ArrowLeftIcon className="mr-1.5 h-3 w-3" />
             Back to Event
           </Button>
         </Link>
       }
     >
-      <div className="bg-zinc-50 min-h-screen">
-        <Card className="max-w-2xl rounded-none border-zinc-200 bg-white shadow-sm">
-          <CardHeader className="border-b border-zinc-100 pb-3 pt-4 px-4">
-            <CardTitle className="text-base">Edit Event Details</CardTitle>
-            <p className="text-xs text-muted-foreground">
-              Update the event information below.
+      <div className="bg-zinc-50 p-2">
+        <Card className="max-w-3xl rounded-none border-zinc-200 bg-white shadow-sm h-fit">
+          <CardHeader className="border-b border-zinc-100 p-3">
+            <CardTitle className="text-sm font-medium">
+              Edit Event Details
+            </CardTitle>
+            <p className="text-[10px] text-muted-foreground">
+              Update event information below.
             </p>
           </CardHeader>
-          <CardContent className="pt-4 px-4 pb-4">
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="space-y-1.5">
-                <Label htmlFor="title" className="text-xs">
-                  Event Title *
-                </Label>
+          <CardContent className="p-4">
+            <form
+              onSubmit={handleSaveClick}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") e.preventDefault();
+              }}
+              className="space-y-4"
+            >
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <Label className="text-xs">Event Name *</Label>
+                  <Input
+                    required
+                    value={formData.event_name}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        event_name: e.target.value,
+                      })
+                    }
+                    className="rounded-none bg-white h-8 text-xs"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-xs">Club Name</Label>
+                  <Input
+                    value={formData.club_name}
+                    onChange={(e) =>
+                      setFormData({ ...formData, club_name: e.target.value })
+                    }
+                    className="rounded-none bg-white h-8 text-xs"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <Label className="text-xs">Event Type</Label>
+                  <Select
+                    value={formData.event_type}
+                    onValueChange={(val) =>
+                      setFormData({ ...formData, event_type: val })
+                    }
+                  >
+                    <SelectTrigger className="rounded-none bg-white h-8 text-xs">
+                      <SelectValue placeholder="Select type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {EVENT_TYPES.map((t) => (
+                        <SelectItem key={t} value={t} className="text-xs">
+                          {t}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-xs">Event For</Label>
+                  <Select
+                    value={formData.event_for}
+                    onValueChange={(val) =>
+                      setFormData({ ...formData, event_for: val })
+                    }
+                  >
+                    <SelectTrigger className="rounded-none bg-white h-8 text-xs">
+                      <SelectValue placeholder="Select audience" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {EVENT_FOR_OPTIONS.map((opt) => (
+                        <SelectItem key={opt} value={opt} className="text-xs">
+                          {opt}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <Label className="text-xs">Start Date & Time</Label>
+                  <Input
+                    type="datetime-local"
+                    required
+                    value={toInputDate(formData.start_date_time)}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        start_date_time: e.target.value,
+                      })
+                    }
+                    className="rounded-none bg-white h-8 text-xs"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-xs">End Date & Time</Label>
+                  <Input
+                    type="datetime-local"
+                    value={toInputDate(formData.end_date_time)}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        end_date_time: e.target.value,
+                      })
+                    }
+                    className="rounded-none bg-white h-8 text-xs"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-3 gap-3">
+                <div className="space-y-1">
+                  <Label className="text-xs">Price (₹)</Label>
+                  <Input
+                    type="number"
+                    min="0"
+                    value={formData.price_per_person}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        price_per_person: e.target.value,
+                      })
+                    }
+                    className="rounded-none bg-white h-8 text-xs"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-xs">Participation Type</Label>
+                  <Input
+                    placeholder="e.g. Individual"
+                    value={formData.participation_type}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        participation_type: e.target.value,
+                      })
+                    }
+                    className="rounded-none bg-white h-8 text-xs"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-xs">Venue</Label>
+                  <Input
+                    value={formData.event_venue}
+                    onChange={(e) =>
+                      setFormData({ ...formData, event_venue: e.target.value })
+                    }
+                    className="rounded-none bg-white h-8 text-xs"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-1">
+                <Label className="text-xs">Short Description</Label>
                 <Input
-                  id="title"
-                  placeholder="Enter event title"
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  required
-                  className="rounded-none bg-white focus-visible:ring-0 focus-visible:border-zinc-800 h-9 text-sm"
+                  value={formData.short_description}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      short_description: e.target.value,
+                    })
+                  }
+                  className="rounded-none bg-white h-8 text-xs"
                 />
               </div>
 
-              <div className="space-y-1.5">
-                <Label htmlFor="date" className="text-xs">
-                  Event Date *
-                </Label>
-                <Input
-                  id="date"
-                  type="date"
-                  value={date}
-                  onChange={(e) => setDate(e.target.value)}
-                  required
-                  className="rounded-none bg-white focus-visible:ring-0 focus-visible:border-zinc-800 h-9 text-sm cursor-pointer"
-                />
-              </div>
-
-              <div className="space-y-1.5">
-                <Label htmlFor="description" className="text-xs">
-                  Description
-                </Label>
+              <div className="space-y-1">
+                <Label className="text-xs">Long Description</Label>
                 <Textarea
-                  id="description"
-                  placeholder="Enter event description"
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  rows={4}
-                  className="rounded-none bg-white focus-visible:ring-0 focus-visible:border-zinc-800 text-sm resize-none"
+                  value={formData.long_description}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      long_description: e.target.value,
+                    })
+                  }
+                  className="rounded-none bg-white min-h-[100px] text-xs"
                 />
               </div>
 
-              <div className="space-y-1.5">
+              <div className="flex items-center space-x-2 border border-zinc-100 bg-zinc-50 p-2 rounded-none">
+                <Switch
+                  id="special-mode"
+                  checked={Boolean(formData.is_special_event)}
+                  onCheckedChange={(checked) =>
+                    setFormData({ ...formData, is_special_event: checked })
+                  }
+                />
+                <Label
+                  htmlFor="special-mode"
+                  className="cursor-pointer text-xs font-medium"
+                >
+                  Mark as Special Event
+                </Label>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <Label className="text-xs">Registration Link</Label>
+                  <Input
+                    value={formData.registration_link}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        registration_link: e.target.value,
+                      })
+                    }
+                    className="rounded-none bg-white h-8 text-xs"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-xs">Team Size</Label>
+                  <Input
+                    value={formData.team_size}
+                    onChange={(e) =>
+                      setFormData({ ...formData, team_size: e.target.value })
+                    }
+                    className="rounded-none bg-white h-8 text-xs"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-1 pt-3 border-t border-zinc-100">
                 <Label className="text-xs">Event Poster</Label>
 
-                {event.image_path && !file && !removeExisting && (
-                  <div className="rounded-none border border-zinc-200 bg-zinc-50 p-3 mb-2">
-                    <p className="text-[10px] text-muted-foreground mb-1.5">
-                      Current media:
-                    </p>
-                    <div className="flex items-center gap-3">
-                      <div className="h-20 w-20 border border-zinc-200 bg-white p-1">
-                        <img
-                          src={`${API_URL}/${event.image_path}`}
-                          alt={event.title}
-                          className="h-full w-full object-cover"
-                        />
-                      </div>
+                {formData.poster_path && !file && (
+                  <div className="rounded-none border border-zinc-200 bg-zinc-50 p-2 mb-2 flex items-center gap-2">
+                    <div className="h-10 w-10 shrink-0 border border-zinc-200 bg-white flex items-center justify-center overflow-hidden">
+                      <img
+                        src={`${API_URL}/${formData.poster_path}`}
+                        alt="Current"
+                        className="h-full w-full object-cover"
+                      />
+                    </div>
+                    <div>
+                      <p className="text-[10px] font-medium text-foreground">
+                        Current File
+                      </p>
+                      <p className="text-[10px] text-muted-foreground truncate max-w-[200px]">
+                        {formData.poster_path}
+                      </p>
                     </div>
                   </div>
                 )}
 
                 {file ? (
-                  <div className="relative rounded-none border border-zinc-200 p-3 bg-zinc-50">
+                  <div className="relative rounded-none border border-zinc-200 p-2 bg-zinc-50">
                     <Button
                       type="button"
                       variant="ghost"
                       size="icon"
-                      className="absolute right-2 top-2 h-6 w-6 rounded-none hover:bg-zinc-200 cursor-pointer"
                       onClick={clearFile}
+                      disabled={isCompressing}
+                      className="absolute right-1 top-1 h-5 w-5 rounded-none hover:bg-zinc-200 cursor-pointer"
                     >
-                      <XIcon className="h-3.5 w-3.5" />
+                      <XIcon className="h-3 w-3" />
                     </Button>
-                    <p className="text-[10px] text-muted-foreground mb-1.5">
-                      New media (will replace existing):
-                    </p>
-                    <div className="flex items-center gap-3">
-                      {preview ? (
-                        <div className="h-20 w-20 border border-zinc-200 bg-white p-1">
+                    <div className="flex items-center gap-2">
+                      <div className="relative h-12 w-12 border border-zinc-200 bg-white flex items-center justify-center overflow-hidden">
+                        {preview ? (
                           <img
                             src={preview}
                             alt="Preview"
-                            className="h-full w-full object-cover"
+                            className={`h-full w-full object-cover ${isCompressing ? "opacity-50" : ""}`}
                           />
-                        </div>
-                      ) : (
-                        <div className="flex h-20 w-20 items-center justify-center bg-white border border-zinc-200 rounded-none">
-                          <UploadSimpleIcon className="h-6 w-6 text-muted-foreground" />
-                        </div>
-                      )}
+                        ) : (
+                          <UploadSimpleIcon className="m-auto" />
+                        )}
+                        {isCompressing && (
+                          <div className="absolute inset-0 flex items-center justify-center bg-white/50">
+                            <SpinnerIcon className="animate-spin" />
+                          </div>
+                        )}
+                      </div>
                       <div>
-                        <p className="font-medium text-foreground text-sm">
-                          {file.name}
-                        </p>
-                        <p className="text-[10px] text-muted-foreground">
-                          {(file.size / 1024 / 1024).toFixed(2)} MB
-                        </p>
+                        {isCompressing ? (
+                          <p className="font-medium text-foreground animate-pulse text-[10px]">
+                            Compressing...
+                          </p>
+                        ) : (
+                          <>
+                            <p className="font-medium text-foreground text-[10px] truncate max-w-[150px]">
+                              {file?.name}
+                            </p>
+                            <div className="flex items-center gap-1 text-[9px] text-muted-foreground">
+                              <span>
+                                {(file!.size / 1024 / 1024).toFixed(2)} MB
+                              </span>
+                              <span className="bg-green-100 text-green-700 px-1 py-0.5 font-bold uppercase">
+                                Ready
+                              </span>
+                            </div>
+                          </>
+                        )}
                       </div>
                     </div>
                   </div>
                 ) : (
-                  <label className="flex cursor-pointer flex-col items-center justify-center rounded-none border-2 border-dashed border-zinc-300 p-6 transition-colors hover:bg-zinc-50 hover:border-zinc-400 bg-white group">
-                    <UploadSimpleIcon className="mb-2 h-6 w-6 text-muted-foreground group-hover:text-zinc-600" />
-                    <span className="text-sm text-muted-foreground font-medium group-hover:text-zinc-700">
-                      Click to upload new poster
+                  <label className="flex cursor-pointer flex-col items-center justify-center rounded-none border border-dashed border-zinc-300 p-4 hover:bg-zinc-50 bg-white transition-colors">
+                    <UploadSimpleIcon className="mb-1 h-5 w-5 text-muted-foreground" />
+                    <span className="text-xs text-muted-foreground font-medium">
+                      Click to upload poster
                     </span>
                     <span className="text-[10px] text-muted-foreground mt-0.5">
-                      (Optional) Replaces current image
+                      Supports Images (Auto-WebP)
                     </span>
                     <input
                       type="file"
                       className="hidden"
-                      accept="image/*,video/mp4"
+                      accept="image/*"
                       onChange={handleFileChange}
                     />
                   </label>
                 )}
               </div>
 
-              <div className="flex gap-2 pt-4 border-t border-zinc-100">
+              <div className="flex gap-2 pt-3 border-t border-zinc-100">
                 <Button
                   type="submit"
-                  disabled={saving}
-                  className="flex-1 rounded-none h-9 text-sm cursor-pointer"
+                  disabled={saving || isCompressing}
+                  className="flex-1 rounded-none h-8 text-xs font-medium cursor-pointer"
                 >
                   {saving ? (
                     <>
-                      <SpinnerIcon className="mr-2 h-3.5 w-3.5 animate-spin" />
-                      Saving...
+                      <SpinnerIcon className="mr-1.5 animate-spin" /> Saving...
                     </>
+                  ) : isCompressing ? (
+                    "Processing..."
                   ) : (
                     "Save Changes"
                   )}
                 </Button>
-                <Link href={`/events/${event.id}`} className="cursor-pointer">
+                <Link href={`/events/${params.id}`} className="cursor-pointer">
                   <Button
                     type="button"
                     variant="outline"
-                    className="rounded-none bg-white border-zinc-200 h-9 text-sm cursor-pointer"
+                    className="rounded-none bg-white h-8 text-xs font-medium cursor-pointer"
                   >
                     Cancel
                   </Button>
@@ -348,6 +621,31 @@ export default function EditEventPage() {
             </form>
           </CardContent>
         </Card>
+
+        <AlertDialog open={showSaveDialog} onOpenChange={setShowSaveDialog}>
+          <AlertDialogContent className="rounded-none border-zinc-200 bg-white shadow-lg max-w-sm p-4">
+            <AlertDialogHeader className="space-y-1">
+              <AlertDialogTitle className="text-sm">
+                Save Changes?
+              </AlertDialogTitle>
+              <AlertDialogDescription className="text-xs">
+                Are you sure you want to update this event? This action will
+                overwrite the existing event details.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter className="mt-3">
+              <AlertDialogCancel className="rounded-none border-zinc-200 bg-white hover:bg-zinc-50 h-7 text-xs cursor-pointer">
+                Cancel
+              </AlertDialogCancel>
+              <AlertDialogAction
+                onClick={confirmSave}
+                className="rounded-none bg-zinc-900 text-white hover:bg-zinc-800 h-7 text-xs cursor-pointer"
+              >
+                Confirm Save
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </CMSLayout>
   );

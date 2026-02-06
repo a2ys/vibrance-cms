@@ -1,7 +1,8 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { Sidebar } from "./sidebar";
+import { HeartIcon } from "@phosphor-icons/react";
 
 interface CMSLayoutProps {
   children: React.ReactNode;
@@ -16,27 +17,68 @@ export function CMSLayout({
   description,
   actions,
 }: CMSLayoutProps) {
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState<boolean>(() => {
+    if (typeof window === "undefined") return false;
+    return localStorage.getItem("cms_sidebar_collapsed") === "true";
+  });
+
+  const handleToggleSidebar = () => {
+    const newState = !isSidebarCollapsed;
+    setIsSidebarCollapsed(newState);
+    localStorage.setItem("cms_sidebar_collapsed", String(newState));
+  };
+
   return (
-    <div className="min-h-screen bg-zinc-50">
-      <Sidebar />
-      <main className="pl-64">
-        <header className="sticky top-0 z-40 border-b border-border bg-zinc-50/95 backdrop-blur supports-backdrop-filter:bg-zinc-50/60">
-          <div className="flex h-14 items-center justify-between px-4">
-            <div>
-              <h1 className="text-lg font-semibold text-foreground leading-tight">
+    <div className="flex h-screen w-full bg-zinc-50 overflow-hidden">
+      <Sidebar
+        isCollapsed={isSidebarCollapsed}
+        toggleSidebar={handleToggleSidebar}
+      />
+
+      <div className="flex-1 flex flex-col min-w-0 h-full">
+        <header className="h-12 border-b border-zinc-200 bg-zinc-50/95 backdrop-blur supports-backdrop-filter:bg-zinc-50/60 shrink-0 z-10">
+          <div className="flex h-full items-center justify-between px-4">
+            <div className="flex flex-col justify-center min-w-0">
+              <h1 className="text-sm font-semibold text-foreground leading-none truncate">
                 {title}
               </h1>
               {description && (
-                <p className="text-xs text-muted-foreground">{description}</p>
+                <p className="text-[10px] text-muted-foreground mt-0.5 truncate">
+                  {description}
+                </p>
               )}
             </div>
             {actions && (
-              <div className="flex items-center gap-2">{actions}</div>
+              <div className="flex items-center gap-2 ml-4 shrink-0">
+                {actions}
+              </div>
             )}
           </div>
         </header>
-        <div className="p-4">{children}</div>
-      </main>
+
+        <main className="flex-1 overflow-y-auto p-4 scroll-smooth">
+          {children}
+        </main>
+
+        <footer className="h-8 border-t border-zinc-200 bg-white shrink-0 flex items-center justify-center gap-1.5 text-[10px] text-zinc-400 font-medium">
+          <span>Made with</span>
+          <HeartIcon
+            weight="fill"
+            className="h-3 w-3 text-red-500 animate-pulse"
+          />
+          <span>
+            by{" "}
+            <a
+              href="https://a2ys.dev"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:underline"
+            >
+              a2ys
+            </a>
+          </span>
+        </footer>
+      </div>
     </div>
   );
 }

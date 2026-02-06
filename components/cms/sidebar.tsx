@@ -10,7 +10,9 @@ import {
   FolderOpenIcon,
   UploadSimpleIcon,
   SignOutIcon,
+  SidebarSimpleIcon,
 } from "@phosphor-icons/react";
+import { Button } from "@/components/ui/button";
 
 const navigation = [
   { name: "Dashboard", href: "/", icon: HouseIcon },
@@ -19,21 +21,50 @@ const navigation = [
   { name: "Upload Media", href: "/upload", icon: UploadSimpleIcon },
 ];
 
-export function Sidebar() {
+interface SidebarProps {
+  isCollapsed: boolean;
+  toggleSidebar: () => void;
+}
+
+export function Sidebar({ isCollapsed, toggleSidebar }: SidebarProps) {
   const pathname = usePathname();
 
   return (
-    <aside className="fixed inset-y-0 left-0 z-50 w-64 border-r border-zinc-200 bg-white flex flex-col">
-      <div className="flex h-14 shrink-0 items-center border-b border-zinc-200 px-4">
-        <div className="flex items-center gap-2">
-          <div className="h-6 w-6 bg-foreground rounded-none"></div>
-          <span className="text-lg font-bold tracking-tight text-foreground">
+    <aside
+      className={cn(
+        "relative z-50 border-r border-zinc-200 bg-white flex flex-col transition-all duration-300 ease-in-out",
+        isCollapsed ? "w-17.5" : "w-64",
+      )}
+    >
+      <div
+        className={cn(
+          "flex h-12 shrink-0 items-center px-3 border-b border-zinc-200 transition-all",
+          isCollapsed ? "justify-center" : "justify-between",
+        )}
+      >
+        <div
+          className={cn(
+            "flex items-center gap-2 overflow-hidden transition-all",
+            isCollapsed ? "w-0 opacity-0 hidden" : "w-auto opacity-100 flex",
+          )}
+        >
+          <div className="h-5 w-5 bg-foreground rounded-none shrink-0"></div>
+          <span className="text-sm font-bold tracking-tight text-foreground whitespace-nowrap">
             Vibrance CMS
           </span>
         </div>
+
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={toggleSidebar}
+          className="h-8 w-8 rounded-none text-muted-foreground hover:text-foreground shrink-0"
+        >
+          <SidebarSimpleIcon className="h-4 w-4" />
+        </Button>
       </div>
 
-      <nav className="flex-1 flex flex-col gap-0.5 p-2 overflow-y-auto">
+      <nav className="flex-1 flex flex-col gap-1 p-2 overflow-y-auto overflow-x-hidden">
         {navigation.map((item) => {
           const isActive =
             pathname === item.href ||
@@ -42,15 +73,28 @@ export function Sidebar() {
             <Link
               key={item.name}
               href={item.href}
+              title={isCollapsed ? item.name : undefined}
               className={cn(
-                "flex items-center gap-3 rounded-none px-3 py-1.5 text-sm font-medium transition-all border-l-2",
+                "flex items-center rounded-none py-2 text-xs font-medium transition-all border-l-2 cursor-pointer whitespace-nowrap",
+                isCollapsed
+                  ? "justify-center px-0"
+                  : "justify-start gap-3 px-3",
                 isActive
                   ? "bg-zinc-100 text-foreground border-foreground"
                   : "text-muted-foreground hover:bg-zinc-50 hover:text-foreground border-transparent",
               )}
             >
-              <item.icon className="h-4 w-4" />
-              {item.name}
+              <item.icon className="h-4 w-4 shrink-0" />
+              <span
+                className={cn(
+                  "transition-all duration-300",
+                  isCollapsed
+                    ? "w-0 opacity-0 overflow-hidden hidden"
+                    : "w-auto opacity-100 block",
+                )}
+              >
+                {item.name}
+              </span>
             </Link>
           );
         })}
@@ -59,14 +103,25 @@ export function Sidebar() {
       <div className="p-2 border-t border-zinc-200 bg-white">
         <SignOutButton redirectUrl="/sign-in">
           <button
+            title="Sign Out"
             className={cn(
-              "flex w-full items-center gap-3 rounded-none px-3 py-1.5 text-sm font-medium transition-all border-l-2 border-transparent",
+              "flex w-full items-center rounded-none py-2 text-xs font-medium transition-all border-l-2 border-transparent",
               "text-muted-foreground hover:bg-red-50 hover:text-red-600 hover:border-red-600",
               "cursor-pointer",
+              isCollapsed ? "justify-center px-0" : "justify-start gap-3 px-3",
             )}
           >
-            <SignOutIcon className="h-4 w-4" />
-            Sign Out
+            <SignOutIcon className="h-4 w-4 shrink-0" />
+            <span
+              className={cn(
+                "transition-all duration-300",
+                isCollapsed
+                  ? "w-0 opacity-0 overflow-hidden hidden"
+                  : "w-auto opacity-100 block",
+              )}
+            >
+              Sign Out
+            </span>
           </button>
         </SignOutButton>
       </div>

@@ -13,6 +13,7 @@ import {
   ImageSquareIcon,
   UploadSimpleIcon,
 } from "@phosphor-icons/react";
+import { formatDate } from "@/lib/utils";
 
 const CARD_CLASS = "rounded-none border-zinc-200 bg-white shadow-sm";
 
@@ -29,8 +30,9 @@ export default function DashboardPage() {
       try {
         const res = await fetch(`${API_URL}/events`);
         const data = await res.json();
-        setEvents(data || []);
+        setEvents(Array.isArray(data) ? data : []);
       } catch (error) {
+        console.error(error);
       } finally {
         setLoading(false);
       }
@@ -40,7 +42,7 @@ export default function DashboardPage() {
 
   const stats = useMemo(() => {
     const totalEvents = events.length;
-    const eventsWithImages = events.filter((e) => e.image_path).length;
+    const eventsWithMedia = events.filter((e) => e.poster_path).length;
 
     return [
       {
@@ -50,10 +52,10 @@ export default function DashboardPage() {
         description: "Events in database",
       },
       {
-        title: "With Posters",
-        value: eventsWithImages,
+        title: "With Media",
+        value: eventsWithMedia,
         icon: ImageSquareIcon,
-        description: "Events with poster images",
+        description: "Events with posters",
       },
     ];
   }, [events]);
@@ -67,25 +69,25 @@ export default function DashboardPage() {
       title="Dashboard"
       description="Overview of your content management system"
     >
-      <div className="space-y-4 bg-zinc-50 min-h-screen p-4">
-        <div className="grid gap-3 md:grid-cols-2">
+      <div className="space-y-2 bg-zinc-50 p-2">
+        <div className="grid gap-2 md:grid-cols-2">
           {stats.map((stat) => (
             <Card key={stat.title} className={CARD_CLASS}>
-              <CardHeader className="flex flex-row items-center justify-between pb-1 space-y-0">
-                <CardTitle className="text-sm font-medium text-muted-foreground">
+              <CardHeader className="flex flex-row items-center justify-between p-3 pb-1 space-y-0">
+                <CardTitle className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide">
                   {stat.title}
                 </CardTitle>
                 <stat.icon className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
-              <CardContent className="pt-2">
+              <CardContent className="p-3 pt-0">
                 {loading ? (
-                  <Skeleton className="h-8 w-16 mb-1" />
+                  <Skeleton className="h-7 w-16 mb-1" />
                 ) : (
-                  <div className="text-2xl font-bold text-foreground">
+                  <div className="text-xl font-bold text-foreground">
                     {stat.value}
                   </div>
                 )}
-                <p className="text-xs text-muted-foreground">
+                <p className="text-[10px] text-muted-foreground">
                   {stat.description}
                 </p>
               </CardContent>
@@ -94,10 +96,12 @@ export default function DashboardPage() {
         </div>
 
         <Card className={CARD_CLASS}>
-          <CardHeader className="flex flex-row items-center justify-between border-b border-zinc-100 pb-3 pt-4 px-4">
-            <div>
-              <CardTitle className="text-base">Recent Events</CardTitle>
-              <p className="text-xs text-muted-foreground">
+          <CardHeader className="flex flex-row items-center justify-between border-b border-zinc-100 p-3">
+            <div className="space-y-0.5">
+              <CardTitle className="text-sm font-medium">
+                Recent Events
+              </CardTitle>
+              <p className="text-[10px] text-muted-foreground">
                 Your latest events at a glance
               </p>
             </div>
@@ -105,70 +109,66 @@ export default function DashboardPage() {
               <Button
                 variant="outline"
                 size="sm"
-                className="rounded-none bg-zinc-50 hover:bg-zinc-100 border-zinc-200 h-8 text-xs cursor-pointer"
+                className="rounded-none bg-zinc-50 hover:bg-zinc-100 border-zinc-200 h-6 text-[10px] px-2 cursor-pointer"
               >
                 View All
               </Button>
             </Link>
           </CardHeader>
-          <CardContent className="pt-3 px-3 pb-3">
+          <CardContent className="p-0">
             {loading ? (
-              <div className="space-y-2">
+              <div className="divide-y divide-zinc-50">
                 {[1, 2, 3].map((i) => (
-                  <div
-                    key={i}
-                    className="flex items-center gap-3 border border-zinc-100 p-2"
-                  >
-                    <Skeleton className="h-10 w-10" />
-                    <div className="flex-1 space-y-2">
+                  <div key={i} className="flex items-center gap-3 p-2">
+                    <Skeleton className="h-8 w-8" />
+                    <div className="flex-1 space-y-1">
                       <Skeleton className="h-3 w-3/4" />
-                      <Skeleton className="h-2 w-1/4" />
+                      <Skeleton className="h-2 w-1/3" />
                     </div>
                   </div>
                 ))}
               </div>
             ) : recentEvents.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-6 text-center">
-                <p className="mt-1 text-sm text-muted-foreground">
-                  No events yet
-                </p>
-                <Link href="/events/new" className="mt-3 cursor-pointer">
+                <p className="text-xs text-muted-foreground">No events yet</p>
+                <Link href="/events/new" className="mt-2 cursor-pointer">
                   <Button
                     size="sm"
-                    className="rounded-none h-8 text-xs cursor-pointer"
+                    className="rounded-none h-7 text-[10px] cursor-pointer"
                   >
                     Create Your First Event
                   </Button>
                 </Link>
               </div>
             ) : (
-              <div className="space-y-2">
+              <div className="divide-y divide-zinc-100">
                 {recentEvents.map((event) => (
                   <div
                     key={event.id}
-                    className="flex items-center gap-3 border border-zinc-200 bg-zinc-50/50 p-2 rounded-none transition-colors hover:bg-zinc-50"
+                    className="flex items-center gap-3 p-2 hover:bg-zinc-50 transition-colors group"
                   >
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden border border-zinc-200 bg-white rounded-none">
-                      {event.image_path ? (
+                    <div className="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden border border-zinc-200 bg-white rounded-none">
+                      {event.poster_path ? (
                         <img
-                          src={`${API_URL}/${event.image_path}`}
-                          alt={event.title}
+                          src={`${API_URL}/${event.poster_path}`}
+                          alt={event.event_name}
                           className="h-full w-full object-cover"
                         />
                       ) : (
-                        <CalendarBlankIcon className="h-5 w-5 text-muted-foreground" />
+                        <CalendarBlankIcon className="h-4 w-4 text-muted-foreground" />
                       )}
                     </div>
 
                     <div className="flex-1 min-w-0">
-                      <p className="font-medium text-foreground truncate text-sm">
-                        {event.title}
+                      <p className="font-medium text-foreground truncate text-xs group-hover:text-zinc-900">
+                        {event.event_name}
                       </p>
-                      <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground uppercase tracking-wider">
+                      <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground mt-0.5">
                         <ClockIcon className="h-3 w-3" />
-                        {event.date}
+                        {formatDate(event.start_date_time)}
                       </div>
                     </div>
+
                     <Link
                       href={`/events/${event.id}`}
                       className="cursor-pointer"
@@ -176,7 +176,7 @@ export default function DashboardPage() {
                       <Button
                         variant="ghost"
                         size="sm"
-                        className="rounded-none hover:bg-white hover:border-zinc-300 border border-transparent h-7 text-xs px-2 cursor-pointer"
+                        className="rounded-none hover:bg-white hover:border-zinc-300 border border-transparent h-6 text-[10px] px-2 cursor-pointer text-muted-foreground hover:text-foreground"
                       >
                         View
                       </Button>
@@ -189,13 +189,13 @@ export default function DashboardPage() {
         </Card>
 
         <Card className={CARD_CLASS}>
-          <CardHeader className="pb-2 pt-4 px-4">
-            <CardTitle className="text-base">Quick Actions</CardTitle>
-            <p className="text-xs text-muted-foreground">
+          <CardHeader className="p-3 pb-2">
+            <CardTitle className="text-sm font-medium">Quick Actions</CardTitle>
+            <p className="text-[10px] text-muted-foreground mt-0.5">
               Common tasks you can perform
             </p>
           </CardHeader>
-          <CardContent className="px-4 pb-4">
+          <CardContent className="p-3 pt-0">
             <div className="grid gap-2 sm:grid-cols-3">
               {[
                 {
@@ -214,7 +214,7 @@ export default function DashboardPage() {
                   href: "/upload",
                   icon: UploadSimpleIcon,
                   title: "Upload Media",
-                  desc: "Add photos or videos",
+                  desc: "Add photos",
                 },
               ].map((action) => (
                 <Link
@@ -222,13 +222,15 @@ export default function DashboardPage() {
                   href={action.href}
                   className="block group cursor-pointer"
                 >
-                  <div className="flex items-center gap-3 border border-zinc-200 bg-zinc-50 p-3 transition-all hover:bg-zinc-100 hover:border-zinc-300 rounded-none h-full cursor-pointer">
-                    <action.icon className="h-5 w-5 text-muted-foreground group-hover:text-foreground shrink-0" />
-                    <div>
-                      <p className="font-medium text-foreground text-sm">
+                  <div className="flex items-center gap-2 border border-zinc-200 bg-zinc-50 p-2 transition-all hover:bg-zinc-100 hover:border-zinc-300 rounded-none h-full cursor-pointer">
+                    <div className="h-6 w-6 flex items-center justify-center bg-white border border-zinc-200 shrink-0">
+                      <action.icon className="h-3 w-3 text-muted-foreground group-hover:text-foreground" />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="font-medium text-foreground text-xs truncate">
                         {action.title}
                       </p>
-                      <p className="text-[10px] text-muted-foreground">
+                      <p className="text-[10px] text-muted-foreground truncate">
                         {action.desc}
                       </p>
                     </div>
