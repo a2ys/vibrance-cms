@@ -151,67 +151,75 @@ export function EventForm({ initialData }: { initialData?: Event }) {
       onKeyDown={(e) => {
         if (e.key === "Enter") e.preventDefault();
       }}
-      className="space-y-4 max-w-2xl"
+      className="space-y-5 max-w-2xl"
     >
-      <div className="grid grid-cols-2 gap-3">
-        <div className="space-y-1">
-          <Label className="text-xs">Event Name</Label>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="space-y-1.5">
+          <Label className="text-sm">Event Name</Label>
           <Input
             required
             value={formData.event_name}
             onChange={(e) =>
               setFormData({ ...formData, event_name: e.target.value })
             }
-            className="rounded-none bg-white h-8 text-xs"
+            className="rounded-none bg-white h-9 text-sm"
           />
         </div>
-        <div className="space-y-1">
-          <Label className="text-xs">Club Name</Label>
+        <div className="space-y-1.5">
+          <Label className="text-sm">Club Name</Label>
           <Input
             value={formData.club_name}
             onChange={(e) =>
               setFormData({ ...formData, club_name: e.target.value })
             }
-            className="rounded-none bg-white h-8 text-xs"
+            className="rounded-none bg-white h-9 text-sm"
           />
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-3">
-        <div className="space-y-1">
-          <Label className="text-xs">Event Type</Label>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="space-y-1.5">
+          <Label className="text-sm">Event Type</Label>
           <Select
             value={formData.event_type}
             onValueChange={(value) =>
               setFormData({ ...formData, event_type: value })
             }
           >
-            <SelectTrigger className="bg-white rounded-none h-8 text-xs">
+            <SelectTrigger className="bg-white rounded-none w-full h-9 text-sm">
               <SelectValue placeholder="Select type" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="rounded-none">
               {EVENT_TYPES.map((type) => (
-                <SelectItem key={type} value={type} className="text-xs">
+                <SelectItem
+                  key={type}
+                  value={type}
+                  className="text-sm rounded-none"
+                >
                   {type}
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
         </div>
-        <div className="space-y-1">
-          <Label className="text-xs">Event For</Label>
+        <div className="space-y-1.5">
+          <Label className="text-sm">Event For</Label>
           <Select
             value={formData.event_for}
             onValueChange={(value) =>
               setFormData({ ...formData, event_for: value })
             }
           >
-            <SelectTrigger className="bg-white rounded-none h-8 text-xs">
+            <SelectTrigger className="bg-white rounded-none w-full h-9 text-sm">
               <SelectValue placeholder="Select audience" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="rounded-none">
               {EVENT_FOR_OPTIONS.map((opt) => (
-                <SelectItem key={opt} value={opt} className="text-xs">
+                <SelectItem
+                  key={opt}
+                  value={opt}
+                  className="text-sm rounded-none"
+                >
                   {opt}
                 </SelectItem>
               ))}
@@ -220,9 +228,9 @@ export function EventForm({ initialData }: { initialData?: Event }) {
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-3">
-        <div className="space-y-1">
-          <Label className="text-xs">Start Date & Time</Label>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="space-y-1.5">
+          <Label className="text-sm">Start Date & Time</Label>
           <Input
             type="datetime-local"
             required
@@ -230,25 +238,25 @@ export function EventForm({ initialData }: { initialData?: Event }) {
             onChange={(e) =>
               setFormData({ ...formData, start_date_time: e.target.value })
             }
-            className="rounded-none bg-white h-8 text-xs"
+            className="rounded-none bg-white h-9 text-sm"
           />
         </div>
-        <div className="space-y-1">
-          <Label className="text-xs">End Date & Time</Label>
+        <div className="space-y-1.5">
+          <Label className="text-sm">End Date & Time</Label>
           <Input
             type="datetime-local"
             value={toInputDate(formData.end_date_time)}
             onChange={(e) =>
               setFormData({ ...formData, end_date_time: e.target.value })
             }
-            className="rounded-none bg-white h-8 text-xs"
+            className="rounded-none bg-white h-9 text-sm"
           />
         </div>
       </div>
 
-      <div className="grid grid-cols-3 gap-3">
-        <div className="space-y-1">
-          <Label className="text-xs">Price (₹)</Label>
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="space-y-1.5">
+          <Label className="text-sm">Price (₹)</Label>
           <Input
             type="number"
             min="0"
@@ -259,47 +267,47 @@ export function EventForm({ initialData }: { initialData?: Event }) {
                 price_per_person: Number(e.target.value),
               })
             }
-            className="rounded-none bg-white h-8 text-xs"
+            className="rounded-none bg-white h-9 text-sm"
           />
         </div>
-        <div className="space-y-1">
-          <Label className="text-xs">Participation</Label>
+        <div className="space-y-1.5">
+          <Label className="text-sm">Participation</Label>
           <Input
             placeholder="e.g. Individual"
             value={formData.participation_type}
             onChange={(e) =>
               setFormData({ ...formData, participation_type: e.target.value })
             }
-            className="rounded-none bg-white h-8 text-xs"
+            className="rounded-none bg-white h-9 text-sm"
           />
         </div>
-        <div className="space-y-1">
-          <Label className="text-xs">Venue</Label>
+        <div className="space-y-1.5">
+          <Label className="text-sm">Venue</Label>
           <Input
             value={formData.event_venue}
             onChange={(e) =>
               setFormData({ ...formData, event_venue: e.target.value })
             }
-            className="rounded-none bg-white h-8 text-xs"
+            className="rounded-none bg-white h-9 text-sm"
           />
         </div>
       </div>
 
-      <div className="space-y-1">
-        <Label className="text-xs">Short Description</Label>
+      <div className="space-y-1.5">
+        <Label className="text-sm">Short Description</Label>
         <Input
           value={formData.short_description}
           onChange={(e) =>
             setFormData({ ...formData, short_description: e.target.value })
           }
-          className="rounded-none bg-white h-8 text-xs"
+          className="rounded-none bg-white h-9 text-sm"
         />
       </div>
 
-      <div className="space-y-1">
-        <Label className="text-xs">Long Description</Label>
+      <div className="space-y-1.5">
+        <Label className="text-sm">Long Description</Label>
         <Textarea
-          className="min-h-[80px] rounded-none bg-white text-xs"
+          className="min-h-[100px] rounded-none bg-white text-sm"
           value={formData.long_description}
           onChange={(e) =>
             setFormData({ ...formData, long_description: e.target.value })
@@ -307,7 +315,7 @@ export function EventForm({ initialData }: { initialData?: Event }) {
         />
       </div>
 
-      <div className="flex items-center space-x-2 border border-zinc-100 bg-zinc-50 p-2 rounded-none">
+      <div className="flex items-center space-x-2 border border-zinc-100 bg-zinc-50 p-3 rounded-none">
         <Switch
           id="special-mode"
           checked={Boolean(formData.is_special_event)}
@@ -315,65 +323,65 @@ export function EventForm({ initialData }: { initialData?: Event }) {
             setFormData({ ...formData, is_special_event: checked })
           }
         />
-        <Label htmlFor="special-mode" className="text-xs cursor-pointer">
+        <Label htmlFor="special-mode" className="text-sm cursor-pointer">
           Is Special Event?
         </Label>
       </div>
 
-      <div className="grid grid-cols-2 gap-3">
-        <div className="space-y-1">
-          <Label className="text-xs">Registration Link</Label>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="space-y-1.5">
+          <Label className="text-sm">Registration Link</Label>
           <Input
             value={formData.registration_link}
             onChange={(e) =>
               setFormData({ ...formData, registration_link: e.target.value })
             }
-            className="rounded-none bg-white h-8 text-xs"
+            className="rounded-none bg-white h-9 text-sm"
           />
         </div>
-        <div className="space-y-1">
-          <Label className="text-xs">Team Size</Label>
+        <div className="space-y-1.5">
+          <Label className="text-sm">Team Size</Label>
           <Input
             placeholder="e.g. 1-4"
             value={formData.team_size}
             onChange={(e) =>
               setFormData({ ...formData, team_size: e.target.value })
             }
-            className="rounded-none bg-white h-8 text-xs"
+            className="rounded-none bg-white h-9 text-sm"
           />
         </div>
       </div>
 
-      <div className="space-y-1 pt-2 border-t border-zinc-100">
-        <Label className="text-xs">Poster Image</Label>
+      <div className="space-y-1.5 pt-2 border-t border-zinc-100">
+        <Label className="text-sm">Poster Image</Label>
         {initialData?.poster_path && !file && (
-          <div className="flex items-center gap-2 rounded-none border border-zinc-200 bg-zinc-50 p-2 mb-2">
-            <div className="h-10 w-10 border border-zinc-200 bg-white p-0.5 shrink-0">
+          <div className="flex items-center gap-3 rounded-none border border-zinc-200 bg-zinc-50 p-2 mb-2">
+            <div className="h-12 w-12 border border-zinc-200 bg-white p-0.5 shrink-0">
               <img
                 src={`${API_URL}/${initialData.poster_path}`}
                 alt="Current"
                 className="h-full w-full object-cover"
               />
             </div>
-            <p className="text-[10px] text-muted-foreground">
+            <p className="text-xs text-muted-foreground">
               Current poster attached
             </p>
           </div>
         )}
 
         {file || isCompressing ? (
-          <div className="relative rounded-none border border-zinc-200 p-2 bg-zinc-50 flex items-center gap-3">
+          <div className="relative rounded-none border border-zinc-200 p-3 bg-zinc-50 flex items-center gap-3">
             <Button
               type="button"
               variant="ghost"
               size="icon"
-              className="absolute right-1 top-1 h-5 w-5 rounded-none hover:bg-zinc-200 cursor-pointer"
+              className="absolute right-2 top-2 h-6 w-6 rounded-none hover:bg-zinc-200 cursor-pointer"
               onClick={clearFile}
               disabled={isCompressing}
             >
-              <XIcon className="h-3 w-3" />
+              <XIcon className="h-3.5 w-3.5" />
             </Button>
-            <div className="relative h-12 w-12 border border-zinc-200 bg-white p-0.5 shrink-0">
+            <div className="relative h-14 w-14 border border-zinc-200 bg-white p-0.5 shrink-0">
               {preview && (
                 <img
                   src={preview}
@@ -383,23 +391,23 @@ export function EventForm({ initialData }: { initialData?: Event }) {
               )}
               {isCompressing && (
                 <div className="absolute inset-0 flex items-center justify-center">
-                  <SpinnerIcon className="h-4 w-4 animate-spin text-zinc-800" />
+                  <SpinnerIcon className="h-5 w-5 animate-spin text-zinc-800" />
                 </div>
               )}
             </div>
             <div className="min-w-0">
               {isCompressing ? (
-                <p className="font-medium text-foreground animate-pulse text-[10px]">
+                <p className="font-medium text-foreground animate-pulse text-xs">
                   Compressing...
                 </p>
               ) : (
                 <>
-                  <p className="font-medium text-foreground text-[10px] truncate">
+                  <p className="font-medium text-foreground text-sm truncate">
                     {file?.name}
                   </p>
-                  <div className="flex items-center gap-2 text-[9px] text-muted-foreground">
+                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
                     <span>{(file!.size / 1024 / 1024).toFixed(2)} MB</span>
-                    <span className="bg-green-100 text-green-700 px-1 font-bold uppercase">
+                    <span className="bg-green-100 text-green-700 px-1.5 py-0.5 text-[10px] font-bold uppercase">
                       Ready
                     </span>
                   </div>
@@ -408,9 +416,9 @@ export function EventForm({ initialData }: { initialData?: Event }) {
             </div>
           </div>
         ) : (
-          <label className="flex cursor-pointer items-center justify-center gap-2 rounded-none border border-dashed border-zinc-300 p-3 hover:bg-zinc-50 bg-white transition-colors">
-            <UploadSimpleIcon className="h-4 w-4 text-muted-foreground" />
-            <span className="text-xs text-muted-foreground font-medium">
+          <label className="flex cursor-pointer items-center justify-center gap-2 rounded-none border border-dashed border-zinc-300 p-4 hover:bg-zinc-50 bg-white transition-colors">
+            <UploadSimpleIcon className="h-5 w-5 text-muted-foreground" />
+            <span className="text-sm text-muted-foreground font-medium">
               Upload Poster (Auto-WebP)
             </span>
             <input
@@ -423,23 +431,24 @@ export function EventForm({ initialData }: { initialData?: Event }) {
         )}
       </div>
 
-      <div className="flex justify-end gap-2 pt-3 border-t border-zinc-100">
+      <div className="flex justify-end gap-3 pt-4 border-t border-zinc-100">
         <Button
           type="button"
           variant="outline"
           onClick={() => router.back()}
-          className="rounded-none h-8 text-xs cursor-pointer"
+          className="rounded-none h-9 text-xs sm:text-sm cursor-pointer"
         >
           Cancel
         </Button>
         <Button
           type="submit"
           disabled={loading || isCompressing}
-          className="rounded-none h-8 text-xs cursor-pointer"
+          className="rounded-none h-9 text-xs sm:text-sm cursor-pointer"
         >
           {loading ? (
             <>
-              <SpinnerIcon className="mr-2 animate-spin" /> Saving...
+              <SpinnerIcon className="mr-2 h-3.5 w-3.5 animate-spin" />{" "}
+              Saving...
             </>
           ) : isCompressing ? (
             "Processing..."

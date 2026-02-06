@@ -275,19 +275,19 @@ export default function MediaBrowserPage() {
       title="Media Browser"
       description="Browse your R2 storage folders"
       actions={
-        <div className="flex items-center gap-1">
+        <div className="flex flex-wrap items-center gap-2">
           {selectedKeys.size > 0 && (
             <>
               <Button
                 variant="outline"
-                className="rounded-none bg-white animate-in fade-in zoom-in h-7 text-xs cursor-pointer px-2"
+                className="rounded-none bg-white animate-in fade-in zoom-in h-8 text-xs sm:text-sm cursor-pointer px-3"
                 onClick={handleBulkDownload}
                 disabled={isBulkDownloading || isBulkDeleting}
               >
                 {isBulkDownloading ? (
-                  <SpinnerIcon className="mr-1.5 h-3 w-3 animate-spin" />
+                  <SpinnerIcon className="mr-2 h-3.5 w-3.5 animate-spin" />
                 ) : (
-                  <DownloadSimpleIcon className="mr-1.5 h-3 w-3" />
+                  <DownloadSimpleIcon className="mr-2 h-3.5 w-3.5" />
                 )}
                 {isBulkDownloading
                   ? "Processing..."
@@ -296,64 +296,67 @@ export default function MediaBrowserPage() {
 
               <Button
                 variant="destructive"
-                className="rounded-none animate-in fade-in zoom-in h-7 text-xs cursor-pointer px-2"
+                className="rounded-none animate-in fade-in zoom-in h-8 text-xs sm:text-sm cursor-pointer px-3"
                 onClick={() => setShowDeleteConfirm(true)}
                 disabled={isBulkDownloading || isBulkDeleting}
               >
-                <TrashIcon className="mr-1.5 h-3 w-3" />
+                <TrashIcon className="mr-2 h-3.5 w-3.5" />
                 Delete ({selectedKeys.size})
               </Button>
             </>
           )}
           <Link href="/upload" className="cursor-pointer">
             <Button
-              className="rounded-none h-7 text-xs cursor-pointer px-2"
+              className="rounded-none h-8 text-xs sm:text-sm cursor-pointer px-3"
               disabled={isBulkDownloading}
             >
-              <UploadSimpleIcon className="mr-1.5 h-3 w-3" />
+              <UploadSimpleIcon className="mr-2 h-3.5 w-3.5" />
               Upload Media
             </Button>
           </Link>
         </div>
       }
     >
-      <div className="bg-zinc-50 p-2">
-        <Card className="mb-2 rounded-none border-zinc-200 bg-white shadow-sm p-0">
-          <CardContent className="p-2 flex items-center justify-between gap-2">
-            <div className="flex items-center gap-2">
+      <div className="bg-zinc-50 p-3 sm:p-4">
+        <Card className="mb-4 rounded-none border-zinc-200 bg-white shadow-sm p-0">
+          <CardContent className="p-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="flex items-center gap-2 w-full overflow-hidden">
               {currentPath && (
                 <Button
                   variant="outline"
                   size="icon"
                   onClick={handleBack}
-                  className="h-6 w-6 rounded-none border-zinc-200 mr-1 cursor-pointer"
+                  className="h-8 w-8 shrink-0 rounded-none border-zinc-200 cursor-pointer"
                   title="Go Back"
                 >
-                  <ArrowLeftIcon className="h-3 w-3" />
+                  <ArrowLeftIcon className="h-4 w-4" />
                 </Button>
               )}
 
-              <div className="flex items-center gap-1 text-xs">
+              <div className="flex items-center gap-1 overflow-x-auto no-scrollbar w-full">
                 <Button
                   variant="ghost"
                   size="sm"
                   onClick={navigateToRoot}
-                  className="h-6 px-1.5 rounded-none hover:bg-zinc-100 text-zinc-500 cursor-pointer"
+                  className="h-8 px-2 rounded-none hover:bg-zinc-100 text-zinc-500 cursor-pointer shrink-0"
                 >
-                  <HouseIcon className="h-3.5 w-3.5" />
+                  <HouseIcon className="h-4 w-4" />
                 </Button>
 
                 {breadcrumbs.length > 0 && (
-                  <span className="text-zinc-300">/</span>
+                  <span className="text-zinc-300 shrink-0">/</span>
                 )}
 
                 {breadcrumbs.map((item, index) => (
-                  <div key={item.path} className="flex items-center gap-1">
+                  <div
+                    key={item.path}
+                    className="flex items-center gap-1 shrink-0"
+                  >
                     <Button
                       variant="ghost"
                       size="sm"
                       onClick={() => navigateToBreadcrumb(index)}
-                      className={`h-6 px-1.5 rounded-none hover:bg-zinc-100 cursor-pointer ${
+                      className={`h-8 px-2 rounded-none hover:bg-zinc-100 cursor-pointer text-xs sm:text-sm ${
                         index === breadcrumbs.length - 1
                           ? "font-semibold text-foreground bg-zinc-50"
                           : "text-muted-foreground"
@@ -362,7 +365,7 @@ export default function MediaBrowserPage() {
                       {item.name}
                     </Button>
                     {index < breadcrumbs.length - 1 && (
-                      <CaretRightIcon className="h-2.5 w-2.5 text-zinc-300" />
+                      <CaretRightIcon className="h-3 w-3 text-zinc-300" />
                     )}
                   </div>
                 ))}
@@ -374,9 +377,9 @@ export default function MediaBrowserPage() {
                 variant="ghost"
                 size="sm"
                 onClick={handleSelectAll}
-                className="h-6 text-[10px] text-muted-foreground hover:text-foreground rounded-none cursor-pointer px-2"
+                className="h-8 text-xs sm:text-sm text-muted-foreground hover:text-foreground rounded-none cursor-pointer px-3 shrink-0 self-start sm:self-auto"
               >
-                <ChecksIcon className="mr-1.5 h-3 w-3" />
+                <ChecksIcon className="mr-2 h-4 w-4" />
                 {selectedKeys.size === files.length
                   ? "Deselect All"
                   : "Select All"}
@@ -386,7 +389,7 @@ export default function MediaBrowserPage() {
         </Card>
 
         {folders.length > 0 && (
-          <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
             {folders.map((folder) => {
               const Icon = folder.icon || FolderIcon;
               return (
@@ -395,21 +398,21 @@ export default function MediaBrowserPage() {
                   className="cursor-pointer transition-all hover:bg-zinc-50 hover:border-zinc-300 rounded-none border-zinc-200 bg-white shadow-sm p-0"
                   onClick={() => navigateToFolder(folder.name, folder.path)}
                 >
-                  <CardContent className="flex items-center gap-2 p-2">
-                    <div className="flex h-8 w-8 items-center justify-center bg-zinc-100 border border-zinc-200 rounded-none shrink-0">
-                      <Icon className="h-4 w-4 text-zinc-600" />
+                  <CardContent className="flex items-center gap-3 p-3">
+                    <div className="flex h-10 w-10 items-center justify-center bg-zinc-100 border border-zinc-200 rounded-none shrink-0">
+                      <Icon className="h-5 w-5 text-zinc-600" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <h3 className="font-medium text-foreground text-xs truncate">
+                      <h3 className="font-medium text-foreground text-sm truncate">
                         {folder.name}
                       </h3>
                       {folder.description && (
-                        <p className="text-[10px] text-muted-foreground truncate">
+                        <p className="text-xs text-muted-foreground truncate">
                           {folder.description}
                         </p>
                       )}
                     </div>
-                    <CaretRightIcon className="h-3 w-3 text-muted-foreground shrink-0" />
+                    <CaretRightIcon className="h-4 w-4 text-muted-foreground shrink-0" />
                   </CardContent>
                 </Card>
               );
@@ -418,16 +421,16 @@ export default function MediaBrowserPage() {
         )}
 
         {isLeafFolder && (
-          <div className="space-y-2">
+          <div className="space-y-3">
             <div className="flex items-center justify-between px-1">
-              <h2 className="text-sm font-medium">Files</h2>
-              <span className="text-[10px] text-muted-foreground">
+              <h2 className="text-base font-medium">Files</h2>
+              <span className="text-xs text-muted-foreground">
                 {files.length} items
               </span>
             </div>
 
             {loading ? (
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-2">
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-3">
                 {[1, 2, 3, 4, 5, 6].map((i) => (
                   <div
                     key={i}
@@ -438,24 +441,24 @@ export default function MediaBrowserPage() {
                 ))}
               </div>
             ) : files.length === 0 ? (
-              <div className="border border-zinc-200 bg-white p-6 text-center rounded-none">
-                <p className="text-xs text-muted-foreground">
+              <div className="border border-zinc-200 bg-white p-8 text-center rounded-none">
+                <p className="text-sm text-muted-foreground">
                   No files found here.
                 </p>
                 <Link
                   href="/upload"
-                  className="mt-2 inline-block cursor-pointer"
+                  className="mt-3 inline-block cursor-pointer"
                 >
                   <Button
                     variant="outline"
-                    className="rounded-none h-7 text-[10px] cursor-pointer"
+                    className="rounded-none h-8 text-xs cursor-pointer"
                   >
                     Upload New
                   </Button>
                 </Link>
               </div>
             ) : (
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-2">
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-3">
                 {files.map((file) => {
                   const isSelected = selectedKeys.has(file.key);
                   return (
@@ -468,14 +471,14 @@ export default function MediaBrowserPage() {
                       }`}
                       onClick={() => toggleSelection(file.key)}
                     >
-                      <div className="absolute top-1.5 left-1.5 z-10">
+                      <div className="absolute top-2 left-2 z-10">
                         {isSelected ? (
                           <CheckCircleIcon
                             weight="fill"
-                            className="h-4 w-4 text-blue-500 bg-white rounded-full"
+                            className="h-5 w-5 text-blue-500 bg-white rounded-full"
                           />
                         ) : (
-                          <CircleIcon className="h-4 w-4 text-white drop-shadow-md opacity-70 group-hover:opacity-100" />
+                          <CircleIcon className="h-5 w-5 text-white drop-shadow-md opacity-70 group-hover:opacity-100" />
                         )}
                       </div>
 
@@ -483,7 +486,7 @@ export default function MediaBrowserPage() {
                         {file.key.endsWith(".mp4") ||
                         file.key.includes("videos/") ? (
                           <div className="w-full h-full flex items-center justify-center bg-black">
-                            <VideoCameraIcon className="h-8 w-8 text-white opacity-50" />
+                            <VideoCameraIcon className="h-10 w-10 text-white opacity-50" />
                             <video
                               src={`${API_URL}${file.url}`}
                               className="absolute inset-0 w-full h-full object-cover opacity-60 pointer-events-none"
@@ -503,25 +506,25 @@ export default function MediaBrowserPage() {
                           <Button
                             size="icon"
                             variant="secondary"
-                            className="h-6 w-6 rounded-none cursor-pointer"
+                            className="h-8 w-8 rounded-none cursor-pointer"
                             onClick={(e) => {
                               e.stopPropagation();
                               setSelectedMedia(file);
                             }}
                           >
-                            <ImageSquareIcon className="h-3 w-3" />
+                            <ImageSquareIcon className="h-4 w-4" />
                           </Button>
                         </div>
                       </div>
 
-                      <div className="p-1.5">
+                      <div className="p-2">
                         <p
-                          className="text-[10px] font-medium truncate"
+                          className="text-xs font-medium truncate"
                           title={file.key}
                         >
                           {file.key.split("/").pop()}
                         </p>
-                        <p className="text-[9px] text-muted-foreground mt-0.5">
+                        <p className="text-[10px] text-muted-foreground mt-0.5">
                           {(file.size / 1024).toFixed(1)} KB
                         </p>
                       </div>
@@ -537,23 +540,23 @@ export default function MediaBrowserPage() {
           open={selectedMedia !== null}
           onOpenChange={() => setSelectedMedia(null)}
         >
-          <DialogContent className="max-w-4xl h-[80vh] p-0 gap-0 rounded-none border-zinc-800 bg-zinc-950 flex flex-col overflow-hidden focus:outline-none [&>button]:hidden">
+          <DialogContent className="w-[95vw] max-w-4xl h-[80vh] p-0 gap-0 rounded-none border-zinc-800 bg-zinc-950 flex flex-col overflow-hidden focus:outline-none [&>button]:hidden">
             {selectedMedia && (
               <>
                 <DialogTitle className="sr-only">
                   Media Preview: {selectedMedia.key}
                 </DialogTitle>
 
-                <div className="flex items-center justify-between px-3 py-1.5 border-b border-zinc-800 bg-zinc-900/50">
-                  <div className="flex items-center gap-2 overflow-hidden">
-                    <div className="p-0.5 bg-zinc-800 rounded-sm">
+                <div className="flex items-center justify-between px-4 py-2 border-b border-zinc-800 bg-zinc-900/50">
+                  <div className="flex items-center gap-3 overflow-hidden">
+                    <div className="p-1 bg-zinc-800 rounded-sm">
                       {selectedMedia.key.endsWith(".mp4") ? (
-                        <VideoCameraIcon className="h-3 w-3 text-zinc-400" />
+                        <VideoCameraIcon className="h-4 w-4 text-zinc-400" />
                       ) : (
-                        <ImageSquareIcon className="h-3 w-3 text-zinc-400" />
+                        <ImageSquareIcon className="h-4 w-4 text-zinc-400" />
                       )}
                     </div>
-                    <span className="text-[10px] font-medium text-zinc-200 truncate font-mono">
+                    <span className="text-xs sm:text-sm font-medium text-zinc-200 truncate font-mono">
                       {selectedMedia.key.split("/").pop()}
                     </span>
                   </div>
@@ -562,13 +565,13 @@ export default function MediaBrowserPage() {
                     variant="ghost"
                     size="icon"
                     onClick={() => setSelectedMedia(null)}
-                    className="h-6 w-6 text-zinc-400 hover:text-white hover:bg-zinc-800 rounded-none cursor-pointer"
+                    className="h-8 w-8 text-zinc-400 hover:text-white hover:bg-zinc-800 rounded-none cursor-pointer"
                   >
-                    <XIcon className="h-3 w-3" />
+                    <XIcon className="h-4 w-4" />
                   </Button>
                 </div>
 
-                <div className="flex-1 relative flex items-center justify-center bg-black/40 p-2 overflow-hidden">
+                <div className="flex-1 relative flex items-center justify-center bg-black/40 p-4 overflow-hidden">
                   {selectedMedia.key.endsWith(".mp4") ||
                   selectedMedia.key.includes("videos/") ? (
                     <video
@@ -594,12 +597,12 @@ export default function MediaBrowserPage() {
           open={showDeleteConfirm}
           onOpenChange={setShowDeleteConfirm}
         >
-          <AlertDialogContent className="rounded-none border-zinc-200 bg-white shadow-lg p-4 max-w-sm">
-            <AlertDialogHeader className="space-y-1">
-              <AlertDialogTitle className="text-sm">
+          <AlertDialogContent className="rounded-none border-zinc-200 bg-white shadow-lg p-5 w-[95vw] max-w-sm">
+            <AlertDialogHeader className="space-y-2">
+              <AlertDialogTitle className="text-base">
                 Delete Selected Files?
               </AlertDialogTitle>
-              <AlertDialogDescription className="text-xs">
+              <AlertDialogDescription className="text-sm">
                 Are you sure you want to delete{" "}
                 <span className="font-bold text-zinc-900">
                   {selectedKeys.size} files
@@ -607,10 +610,10 @@ export default function MediaBrowserPage() {
                 ? This action cannot be undone.
               </AlertDialogDescription>
             </AlertDialogHeader>
-            <AlertDialogFooter className="mt-3">
+            <AlertDialogFooter className="mt-5">
               <AlertDialogCancel
                 disabled={isBulkDeleting}
-                className="rounded-none border-zinc-200 bg-white hover:bg-zinc-50 h-7 text-xs cursor-pointer"
+                className="rounded-none border-zinc-200 bg-white hover:bg-zinc-50 h-8 text-sm cursor-pointer"
               >
                 Cancel
               </AlertDialogCancel>
@@ -620,7 +623,7 @@ export default function MediaBrowserPage() {
                   executeDelete();
                 }}
                 disabled={isBulkDeleting}
-                className="rounded-none bg-destructive text-destructive-foreground hover:bg-destructive/90 h-7 text-xs cursor-pointer"
+                className="rounded-none bg-destructive text-destructive-foreground hover:bg-destructive/90 h-8 text-sm cursor-pointer"
               >
                 {isBulkDeleting ? "Deleting..." : "Delete All"}
               </AlertDialogAction>

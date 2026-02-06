@@ -141,27 +141,27 @@ export default function UploadMediaPage() {
         <Link href="/media" className="cursor-pointer">
           <Button
             variant="outline"
-            className="rounded-none bg-white hover:bg-zinc-50 border-zinc-200 h-7 text-xs cursor-pointer px-2"
+            className="rounded-none bg-white hover:bg-zinc-50 border-zinc-200 h-8 text-xs sm:text-sm cursor-pointer px-3"
           >
-            <EyeIcon className="mr-1.5 h-3 w-3" />
+            <EyeIcon className="mr-2 h-3.5 w-3.5" />
             Browse Media
           </Button>
         </Link>
       }
     >
-      <div className="bg-zinc-50 p-2 space-y-2">
+      <div className="bg-zinc-50 p-3 sm:p-4 space-y-4">
         <Card className="rounded-none border-zinc-200 bg-white shadow-sm h-fit">
-          <CardHeader className="border-b border-zinc-100 p-3 flex flex-row items-center justify-between space-y-0">
+          <CardHeader className="border-b border-zinc-100 p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 space-y-0">
             <div>
-              <CardTitle className="text-sm font-medium">
+              <CardTitle className="text-base font-medium">
                 Upload New Media
               </CardTitle>
-              <p className="text-[10px] text-muted-foreground">
+              <p className="text-xs text-muted-foreground mt-1">
                 Select files to upload.
               </p>
             </div>
-            <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground bg-zinc-50 px-2 py-1 border border-zinc-100">
-              <InfoIcon className="h-3 w-3" />
+            <div className="flex items-center gap-2 text-xs text-muted-foreground bg-zinc-50 px-3 py-1.5 border border-zinc-100 w-fit">
+              <InfoIcon className="h-3.5 w-3.5" />
               <span>
                 {activeTab === "photos"
                   ? "Auto-WebP Conversion Active"
@@ -169,7 +169,7 @@ export default function UploadMediaPage() {
               </span>
             </div>
           </CardHeader>
-          <CardContent className="p-3">
+          <CardContent className="p-4">
             <Tabs
               value={activeTab}
               onValueChange={(v) => {
@@ -177,33 +177,33 @@ export default function UploadMediaPage() {
                 setSelectedFiles([]);
               }}
             >
-              <TabsList className="grid w-full grid-cols-2 rounded-none bg-zinc-100 p-0.5 mb-3 h-8">
+              <TabsList className="grid w-full grid-cols-2 rounded-none bg-zinc-100 p-1 mb-4 h-9">
                 <TabsTrigger
                   value="photos"
-                  className="gap-2 rounded-none data-[state=active]:bg-white data-[state=active]:shadow-sm text-xs cursor-pointer h-7"
+                  className="gap-2 rounded-none data-[state=active]:bg-white data-[state=active]:shadow-sm text-xs sm:text-sm cursor-pointer h-7"
                 >
-                  <ImageSquareIcon className="h-3.5 w-3.5" />
+                  <ImageSquareIcon className="h-4 w-4" />
                   Photos
                 </TabsTrigger>
                 <TabsTrigger
                   value="videos"
-                  className="gap-2 rounded-none data-[state=active]:bg-white data-[state=active]:shadow-sm text-xs cursor-pointer h-7"
+                  className="gap-2 rounded-none data-[state=active]:bg-white data-[state=active]:shadow-sm text-xs sm:text-sm cursor-pointer h-7"
                 >
-                  <VideoCameraIcon className="h-3.5 w-3.5" />
+                  <VideoCameraIcon className="h-4 w-4" />
                   Videos
                 </TabsTrigger>
               </TabsList>
 
               <div className="mt-2">
                 <label
-                  className={`flex flex-col items-center justify-center border border-dashed p-4 transition-colors cursor-pointer bg-zinc-50/50 rounded-none ${
+                  className={`flex flex-col items-center justify-center border border-dashed p-6 sm:p-8 transition-colors cursor-pointer bg-zinc-50/50 rounded-none ${
                     isProcessing
                       ? "opacity-50 pointer-events-none"
                       : "hover:bg-zinc-50 hover:border-zinc-400 border-zinc-300"
                   }`}
                 >
-                  <UploadSimpleIcon className="mb-1 h-5 w-5 text-muted-foreground" />
-                  <span className="text-xs text-muted-foreground font-medium">
+                  <UploadSimpleIcon className="mb-2 h-6 w-6 text-muted-foreground" />
+                  <span className="text-sm text-muted-foreground font-medium">
                     Click to select {activeTab}
                   </span>
                   <input
@@ -218,9 +218,9 @@ export default function UploadMediaPage() {
               </div>
 
               {selectedFiles.length > 0 && (
-                <div className="mt-3 space-y-2">
-                  <div className="flex items-center justify-between border-b border-zinc-100 pb-1">
-                    <h3 className="text-xs font-medium">
+                <div className="mt-4 space-y-3">
+                  <div className="flex items-center justify-between border-b border-zinc-100 pb-2">
+                    <h3 className="text-sm font-medium">
                       Selected ({selectedFiles.length})
                     </h3>
                     <Button
@@ -228,50 +228,50 @@ export default function UploadMediaPage() {
                       size="sm"
                       onClick={() => setShowClearDialog(true)}
                       disabled={isProcessing}
-                      className="text-destructive hover:text-destructive h-5 px-1.5 text-[10px] cursor-pointer"
+                      className="text-destructive hover:text-destructive h-6 px-2 text-xs cursor-pointer"
                     >
                       Clear All
                     </Button>
                   </div>
 
-                  <div className="grid gap-1 max-h-48 overflow-y-auto pr-1">
+                  <div className="grid gap-2 max-h-56 overflow-y-auto pr-1">
                     {selectedFiles.map((file, idx) => (
                       <div
                         key={idx}
-                        className="flex items-center justify-between bg-zinc-50 border border-zinc-100 p-1.5"
+                        className="flex items-center justify-between bg-zinc-50 border border-zinc-100 p-2"
                       >
-                        <div className="flex items-center gap-2 overflow-hidden">
-                          <div className="h-6 w-6 bg-white border border-zinc-200 flex items-center justify-center shrink-0">
+                        <div className="flex items-center gap-3 overflow-hidden">
+                          <div className="h-8 w-8 bg-white border border-zinc-200 flex items-center justify-center shrink-0">
                             {activeTab === "photos" ? (
-                              <ImageSquareIcon className="text-zinc-400 h-3 w-3" />
+                              <ImageSquareIcon className="text-zinc-400 h-4 w-4" />
                             ) : (
-                              <VideoCameraIcon className="text-zinc-400 h-3 w-3" />
+                              <VideoCameraIcon className="text-zinc-400 h-4 w-4" />
                             )}
                           </div>
                           <div className="min-w-0">
-                            <p className="truncate font-medium text-zinc-700 text-[10px]">
+                            <p className="truncate font-medium text-zinc-700 text-xs">
                               {file.name}
                             </p>
-                            <p className="text-[9px] text-muted-foreground">
+                            <p className="text-[10px] text-muted-foreground">
                               {(file.size / 1024).toFixed(1)} KB
                             </p>
                           </div>
                         </div>
                         <div className="flex items-center gap-2">
                           {isProcessing && idx < progress.current && (
-                            <CheckCircleIcon className="h-3.5 w-3.5 text-green-500" />
+                            <CheckCircleIcon className="h-4 w-4 text-green-500" />
                           )}
                           {isProcessing && idx === progress.current && (
-                            <SpinnerIcon className="h-3.5 w-3.5 animate-spin text-zinc-500" />
+                            <SpinnerIcon className="h-4 w-4 animate-spin text-zinc-500" />
                           )}
                           {!isProcessing && (
                             <Button
                               variant="ghost"
                               size="icon"
                               onClick={() => removeFile(idx)}
-                              className="h-5 w-5 text-muted-foreground hover:text-destructive cursor-pointer"
+                              className="h-6 w-6 text-muted-foreground hover:text-destructive cursor-pointer"
                             >
-                              <XIcon className="h-3 w-3" />
+                              <XIcon className="h-3.5 w-3.5" />
                             </Button>
                           )}
                         </div>
@@ -281,8 +281,8 @@ export default function UploadMediaPage() {
 
                   <div className="space-y-2 pt-2">
                     {isProcessing && (
-                      <div className="space-y-1">
-                        <div className="flex justify-between text-[10px] text-muted-foreground">
+                      <div className="space-y-1.5">
+                        <div className="flex justify-between text-xs text-muted-foreground">
                           <span>{statusMessage}</span>
                           <span>
                             {Math.round(
@@ -291,7 +291,7 @@ export default function UploadMediaPage() {
                             %
                           </span>
                         </div>
-                        <div className="w-full bg-zinc-100 h-1 rounded-none overflow-hidden">
+                        <div className="w-full bg-zinc-100 h-1.5 rounded-none overflow-hidden">
                           <div
                             className="bg-zinc-900 h-full transition-all duration-300"
                             style={{
@@ -305,11 +305,11 @@ export default function UploadMediaPage() {
                     <Button
                       onClick={handleUpload}
                       disabled={isProcessing}
-                      className="w-full rounded-none h-7 text-xs cursor-pointer"
+                      className="w-full rounded-none h-8 sm:h-9 text-xs sm:text-sm cursor-pointer"
                     >
                       {isProcessing ? (
                         <>
-                          <SpinnerIcon className="mr-2 animate-spin" />{" "}
+                          <SpinnerIcon className="mr-2 h-4 w-4 animate-spin" />{" "}
                           Processing...
                         </>
                       ) : (
@@ -325,13 +325,13 @@ export default function UploadMediaPage() {
 
         {filteredUploadedFiles.length > 0 && (
           <Card className="rounded-none border-zinc-200 bg-white shadow-sm h-fit">
-            <CardHeader className="border-b border-zinc-100 p-3">
-              <CardTitle className="text-sm font-medium">
+            <CardHeader className="border-b border-zinc-100 p-4">
+              <CardTitle className="text-base font-medium">
                 Session Uploads
               </CardTitle>
             </CardHeader>
-            <CardContent className="p-3">
-              <div className="grid gap-2 grid-cols-2 sm:grid-cols-4 md:grid-cols-5">
+            <CardContent className="p-4">
+              <div className="grid gap-3 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
                 {filteredUploadedFiles.map((file, idx) => (
                   <div
                     key={idx}
@@ -345,24 +345,24 @@ export default function UploadMediaPage() {
                           className="h-full w-full object-cover"
                         />
                       ) : (
-                        <VideoCameraIcon className="h-6 w-6 text-muted-foreground" />
+                        <VideoCameraIcon className="h-8 w-8 text-muted-foreground" />
                       )}
                       <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                         <Button
                           size="sm"
                           variant="secondary"
-                          className="rounded-none h-6 px-2 text-[10px] cursor-pointer"
+                          className="rounded-none h-7 px-2.5 text-xs cursor-pointer"
                           onClick={() => setPreviewMedia(file)}
                         >
-                          <EyeIcon className="mr-1 h-3 w-3" /> Preview
+                          <EyeIcon className="mr-1.5 h-3.5 w-3.5" /> Preview
                         </Button>
                       </div>
                     </div>
-                    <div className="p-1.5 bg-white border-t border-zinc-200">
-                      <p className="text-[10px] truncate font-medium">
+                    <div className="p-2 bg-white border-t border-zinc-200">
+                      <p className="text-xs truncate font-medium">
                         {file.name}
                       </p>
-                      <p className="text-[9px] text-muted-foreground">
+                      <p className="text-[10px] text-muted-foreground mt-0.5">
                         {(file.size / 1024).toFixed(1)} KB
                       </p>
                     </div>
@@ -374,22 +374,22 @@ export default function UploadMediaPage() {
         )}
 
         <AlertDialog open={showClearDialog} onOpenChange={setShowClearDialog}>
-          <AlertDialogContent className="rounded-none border-zinc-200 bg-white shadow-lg p-4 max-w-sm">
-            <AlertDialogHeader className="space-y-1">
-              <AlertDialogTitle className="text-sm">
+          <AlertDialogContent className="rounded-none border-zinc-200 bg-white shadow-lg p-5 w-[95vw] max-w-sm">
+            <AlertDialogHeader className="space-y-2">
+              <AlertDialogTitle className="text-base">
                 Clear All?
               </AlertDialogTitle>
-              <AlertDialogDescription className="text-xs">
+              <AlertDialogDescription className="text-sm">
                 This will remove all selected files from the queue.
               </AlertDialogDescription>
             </AlertDialogHeader>
-            <AlertDialogFooter className="mt-3">
-              <AlertDialogCancel className="rounded-none border-zinc-200 bg-white hover:bg-zinc-50 h-7 text-xs cursor-pointer">
+            <AlertDialogFooter className="mt-4">
+              <AlertDialogCancel className="rounded-none border-zinc-200 bg-white hover:bg-zinc-50 h-8 text-sm cursor-pointer">
                 Cancel
               </AlertDialogCancel>
               <AlertDialogAction
                 onClick={clearAllFiles}
-                className="rounded-none bg-destructive text-destructive-foreground hover:bg-destructive/90 h-7 text-xs cursor-pointer"
+                className="rounded-none bg-destructive text-destructive-foreground hover:bg-destructive/90 h-8 text-sm cursor-pointer"
               >
                 Clear
               </AlertDialogAction>
@@ -401,19 +401,19 @@ export default function UploadMediaPage() {
           open={previewMedia !== null}
           onOpenChange={() => setPreviewMedia(null)}
         >
-          <DialogContent className="max-w-4xl h-[80vh] p-0 gap-0 rounded-none border-zinc-800 bg-zinc-950 flex flex-col overflow-hidden focus:outline-none [&>button]:hidden">
+          <DialogContent className="w-[95vw] max-w-4xl h-[80vh] p-0 gap-0 rounded-none border-zinc-800 bg-zinc-950 flex flex-col overflow-hidden focus:outline-none [&>button]:hidden">
             {previewMedia && (
               <>
                 <DialogTitle className="sr-only">
                   Preview: {previewMedia.name}
                 </DialogTitle>
-                <div className="flex items-center justify-between px-3 py-1.5 border-b border-zinc-800 bg-zinc-900/50">
-                  <div className="flex items-center gap-2 overflow-hidden">
-                    <span className="text-[10px] font-medium text-zinc-200 truncate font-mono">
+                <div className="flex items-center justify-between px-4 py-2 border-b border-zinc-800 bg-zinc-900/50">
+                  <div className="flex items-center gap-3 overflow-hidden">
+                    <span className="text-xs sm:text-sm font-medium text-zinc-200 truncate font-mono">
                       {previewMedia.name}
                     </span>
                   </div>
-                  <div className="flex items-center gap-1">
+                  <div className="flex items-center gap-2">
                     <a
                       href={`${API_URL}/${previewMedia.path}`}
                       download={previewMedia.name}
@@ -423,22 +423,22 @@ export default function UploadMediaPage() {
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="h-6 w-6 text-zinc-400 hover:text-white hover:bg-zinc-800 rounded-none cursor-pointer"
+                        className="h-8 w-8 text-zinc-400 hover:text-white hover:bg-zinc-800 rounded-none cursor-pointer"
                       >
-                        <DownloadSimpleIcon className="h-3 w-3" />
+                        <DownloadSimpleIcon className="h-4 w-4" />
                       </Button>
                     </a>
                     <Button
                       variant="ghost"
                       size="icon"
                       onClick={() => setPreviewMedia(null)}
-                      className="h-6 w-6 text-zinc-400 hover:text-white hover:bg-zinc-800 rounded-none cursor-pointer"
+                      className="h-8 w-8 text-zinc-400 hover:text-white hover:bg-zinc-800 rounded-none cursor-pointer"
                     >
-                      <XIcon className="h-3 w-3" />
+                      <XIcon className="h-4 w-4" />
                     </Button>
                   </div>
                 </div>
-                <div className="flex-1 relative flex items-center justify-center bg-black/40 p-2 overflow-hidden">
+                <div className="flex-1 relative flex items-center justify-center bg-black/40 p-4 overflow-hidden">
                   {previewMedia.type === "videos" ? (
                     <video
                       src={`${API_URL}/${previewMedia.path}`}

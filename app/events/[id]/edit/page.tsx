@@ -233,13 +233,13 @@ export default function EditEventPage() {
   if (loading) {
     return (
       <CMSLayout title="Loading..." description="Please wait">
-        <div className="bg-zinc-50 p-2">
+        <div className="bg-zinc-50 p-3 sm:p-4">
           <Card className="max-w-3xl rounded-none border-zinc-200 bg-white shadow-sm p-0">
-            <CardHeader className="border-b border-zinc-100 p-3">
-              <Skeleton className="h-4 w-32 mb-1" />
-              <Skeleton className="h-3 w-48" />
+            <CardHeader className="border-b border-zinc-100 p-4">
+              <Skeleton className="h-5 w-32 mb-1" />
+              <Skeleton className="h-4 w-48" />
             </CardHeader>
-            <CardContent className="p-3 space-y-4">
+            <CardContent className="p-4 sm:p-6 space-y-4">
               <Skeleton className="h-96 w-full" />
             </CardContent>
           </Card>
@@ -258,35 +258,35 @@ export default function EditEventPage() {
         <Link href={`/events/${params.id}`} className="cursor-pointer">
           <Button
             variant="outline"
-            className="rounded-none bg-white hover:bg-zinc-50 border-zinc-200 h-7 text-xs cursor-pointer px-2"
+            className="rounded-none bg-white hover:bg-zinc-50 border-zinc-200 h-8 text-xs sm:text-sm cursor-pointer px-3"
           >
-            <ArrowLeftIcon className="mr-1.5 h-3 w-3" />
+            <ArrowLeftIcon className="mr-1.5 h-3.5 w-3.5" />
             Back to Event
           </Button>
         </Link>
       }
     >
-      <div className="bg-zinc-50 p-2">
+      <div className="bg-zinc-50 p-3 sm:p-4">
         <Card className="max-w-3xl rounded-none border-zinc-200 bg-white shadow-sm h-fit">
-          <CardHeader className="border-b border-zinc-100 p-3">
-            <CardTitle className="text-sm font-medium">
+          <CardHeader className="border-b border-zinc-100 p-4">
+            <CardTitle className="text-base font-medium">
               Edit Event Details
             </CardTitle>
-            <p className="text-[10px] text-muted-foreground">
+            <p className="text-xs text-muted-foreground mt-1">
               Update event information below.
             </p>
           </CardHeader>
-          <CardContent className="p-4">
+          <CardContent className="p-4 sm:p-6">
             <form
               onSubmit={handleSaveClick}
               onKeyDown={(e) => {
                 if (e.key === "Enter") e.preventDefault();
               }}
-              className="space-y-4"
+              className="space-y-5"
             >
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1">
-                  <Label className="text-xs">Event Name *</Label>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <Label className="text-sm">Event Name *</Label>
                   <Input
                     required
                     value={formData.event_name}
@@ -296,56 +296,64 @@ export default function EditEventPage() {
                         event_name: e.target.value,
                       })
                     }
-                    className="rounded-none bg-white h-8 text-xs"
+                    className="rounded-none bg-white h-9 text-sm"
                   />
                 </div>
-                <div className="space-y-1">
-                  <Label className="text-xs">Club Name</Label>
+                <div className="space-y-1.5">
+                  <Label className="text-sm">Club Name</Label>
                   <Input
                     value={formData.club_name}
                     onChange={(e) =>
                       setFormData({ ...formData, club_name: e.target.value })
                     }
-                    className="rounded-none bg-white h-8 text-xs"
+                    className="rounded-none bg-white h-9 text-sm"
                   />
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1">
-                  <Label className="text-xs">Event Type</Label>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <Label className="text-sm">Event Type</Label>
                   <Select
                     value={formData.event_type}
                     onValueChange={(val) =>
                       setFormData({ ...formData, event_type: val })
                     }
                   >
-                    <SelectTrigger className="rounded-none bg-white h-8 text-xs">
+                    <SelectTrigger className="rounded-none bg-white w-full h-9 text-sm">
                       <SelectValue placeholder="Select type" />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="rounded-none">
                       {EVENT_TYPES.map((t) => (
-                        <SelectItem key={t} value={t} className="text-xs">
+                        <SelectItem
+                          key={t}
+                          value={t}
+                          className="text-sm rounded-none"
+                        >
                           {t}
                         </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
                 </div>
-                <div className="space-y-1">
-                  <Label className="text-xs">Event For</Label>
+                <div className="space-y-1.5">
+                  <Label className="text-sm">Event For</Label>
                   <Select
                     value={formData.event_for}
                     onValueChange={(val) =>
                       setFormData({ ...formData, event_for: val })
                     }
                   >
-                    <SelectTrigger className="rounded-none bg-white h-8 text-xs">
+                    <SelectTrigger className="rounded-none bg-white h-9 w-full text-sm">
                       <SelectValue placeholder="Select audience" />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="rounded-none">
                       {EVENT_FOR_OPTIONS.map((opt) => (
-                        <SelectItem key={opt} value={opt} className="text-xs">
+                        <SelectItem
+                          key={opt}
+                          value={opt}
+                          className="text-sm rounded-none"
+                        >
                           {opt}
                         </SelectItem>
                       ))}
@@ -354,9 +362,9 @@ export default function EditEventPage() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1">
-                  <Label className="text-xs">Start Date & Time</Label>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <Label className="text-sm">Start Date & Time</Label>
                   <Input
                     type="datetime-local"
                     required
@@ -367,11 +375,11 @@ export default function EditEventPage() {
                         start_date_time: e.target.value,
                       })
                     }
-                    className="rounded-none bg-white h-8 text-xs"
+                    className="rounded-none bg-white h-9 text-sm"
                   />
                 </div>
-                <div className="space-y-1">
-                  <Label className="text-xs">End Date & Time</Label>
+                <div className="space-y-1.5">
+                  <Label className="text-sm">End Date & Time</Label>
                   <Input
                     type="datetime-local"
                     value={toInputDate(formData.end_date_time)}
@@ -381,14 +389,14 @@ export default function EditEventPage() {
                         end_date_time: e.target.value,
                       })
                     }
-                    className="rounded-none bg-white h-8 text-xs"
+                    className="rounded-none bg-white h-9 text-sm"
                   />
                 </div>
               </div>
 
-              <div className="grid grid-cols-3 gap-3">
-                <div className="space-y-1">
-                  <Label className="text-xs">Price (₹)</Label>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div className="space-y-1.5">
+                  <Label className="text-sm">Price (₹)</Label>
                   <Input
                     type="number"
                     min="0"
@@ -399,11 +407,11 @@ export default function EditEventPage() {
                         price_per_person: e.target.value,
                       })
                     }
-                    className="rounded-none bg-white h-8 text-xs"
+                    className="rounded-none bg-white h-9 text-sm"
                   />
                 </div>
-                <div className="space-y-1">
-                  <Label className="text-xs">Participation Type</Label>
+                <div className="space-y-1.5">
+                  <Label className="text-sm">Participation Type</Label>
                   <Input
                     placeholder="e.g. Individual"
                     value={formData.participation_type}
@@ -413,23 +421,23 @@ export default function EditEventPage() {
                         participation_type: e.target.value,
                       })
                     }
-                    className="rounded-none bg-white h-8 text-xs"
+                    className="rounded-none bg-white h-9 text-sm"
                   />
                 </div>
-                <div className="space-y-1">
-                  <Label className="text-xs">Venue</Label>
+                <div className="space-y-1.5">
+                  <Label className="text-sm">Venue</Label>
                   <Input
                     value={formData.event_venue}
                     onChange={(e) =>
                       setFormData({ ...formData, event_venue: e.target.value })
                     }
-                    className="rounded-none bg-white h-8 text-xs"
+                    className="rounded-none bg-white h-9 text-sm"
                   />
                 </div>
               </div>
 
-              <div className="space-y-1">
-                <Label className="text-xs">Short Description</Label>
+              <div className="space-y-1.5">
+                <Label className="text-sm">Short Description</Label>
                 <Input
                   value={formData.short_description}
                   onChange={(e) =>
@@ -438,12 +446,12 @@ export default function EditEventPage() {
                       short_description: e.target.value,
                     })
                   }
-                  className="rounded-none bg-white h-8 text-xs"
+                  className="rounded-none bg-white h-9 text-sm"
                 />
               </div>
 
-              <div className="space-y-1">
-                <Label className="text-xs">Long Description</Label>
+              <div className="space-y-1.5">
+                <Label className="text-sm">Long Description</Label>
                 <Textarea
                   value={formData.long_description}
                   onChange={(e) =>
@@ -452,11 +460,11 @@ export default function EditEventPage() {
                       long_description: e.target.value,
                     })
                   }
-                  className="rounded-none bg-white min-h-[100px] text-xs"
+                  className="rounded-none bg-white min-h-[100px] text-sm"
                 />
               </div>
 
-              <div className="flex items-center space-x-2 border border-zinc-100 bg-zinc-50 p-2 rounded-none">
+              <div className="flex items-center space-x-2 border border-zinc-100 bg-zinc-50 p-3 rounded-none">
                 <Switch
                   id="special-mode"
                   checked={Boolean(formData.is_special_event)}
@@ -466,15 +474,15 @@ export default function EditEventPage() {
                 />
                 <Label
                   htmlFor="special-mode"
-                  className="cursor-pointer text-xs font-medium"
+                  className="cursor-pointer text-sm font-medium"
                 >
                   Mark as Special Event
                 </Label>
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1">
-                  <Label className="text-xs">Registration Link</Label>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <Label className="text-sm">Registration Link</Label>
                   <Input
                     value={formData.registration_link}
                     onChange={(e) =>
@@ -483,27 +491,27 @@ export default function EditEventPage() {
                         registration_link: e.target.value,
                       })
                     }
-                    className="rounded-none bg-white h-8 text-xs"
+                    className="rounded-none bg-white h-9 text-sm"
                   />
                 </div>
-                <div className="space-y-1">
-                  <Label className="text-xs">Team Size</Label>
+                <div className="space-y-1.5">
+                  <Label className="text-sm">Team Size</Label>
                   <Input
                     value={formData.team_size}
                     onChange={(e) =>
                       setFormData({ ...formData, team_size: e.target.value })
                     }
-                    className="rounded-none bg-white h-8 text-xs"
+                    className="rounded-none bg-white h-9 text-sm"
                   />
                 </div>
               </div>
 
-              <div className="space-y-1 pt-3 border-t border-zinc-100">
-                <Label className="text-xs">Event Poster</Label>
+              <div className="space-y-2 pt-3 border-t border-zinc-100">
+                <Label className="text-sm">Event Poster</Label>
 
                 {formData.poster_path && !file && (
-                  <div className="rounded-none border border-zinc-200 bg-zinc-50 p-2 mb-2 flex items-center gap-2">
-                    <div className="h-10 w-10 shrink-0 border border-zinc-200 bg-white flex items-center justify-center overflow-hidden">
+                  <div className="rounded-none border border-zinc-200 bg-zinc-50 p-3 mb-2 flex items-center gap-3">
+                    <div className="h-12 w-12 shrink-0 border border-zinc-200 bg-white flex items-center justify-center overflow-hidden">
                       <img
                         src={`${API_URL}/${formData.poster_path}`}
                         alt="Current"
@@ -511,7 +519,7 @@ export default function EditEventPage() {
                       />
                     </div>
                     <div>
-                      <p className="text-[10px] font-medium text-foreground">
+                      <p className="text-xs font-medium text-foreground">
                         Current File
                       </p>
                       <p className="text-[10px] text-muted-foreground truncate max-w-[200px]">
@@ -522,19 +530,19 @@ export default function EditEventPage() {
                 )}
 
                 {file ? (
-                  <div className="relative rounded-none border border-zinc-200 p-2 bg-zinc-50">
+                  <div className="relative rounded-none border border-zinc-200 p-3 bg-zinc-50">
                     <Button
                       type="button"
                       variant="ghost"
                       size="icon"
                       onClick={clearFile}
                       disabled={isCompressing}
-                      className="absolute right-1 top-1 h-5 w-5 rounded-none hover:bg-zinc-200 cursor-pointer"
+                      className="absolute right-2 top-2 h-6 w-6 rounded-none hover:bg-zinc-200 cursor-pointer"
                     >
-                      <XIcon className="h-3 w-3" />
+                      <XIcon className="h-3.5 w-3.5" />
                     </Button>
-                    <div className="flex items-center gap-2">
-                      <div className="relative h-12 w-12 border border-zinc-200 bg-white flex items-center justify-center overflow-hidden">
+                    <div className="flex items-center gap-3">
+                      <div className="relative h-14 w-14 border border-zinc-200 bg-white flex items-center justify-center overflow-hidden">
                         {preview ? (
                           <img
                             src={preview}
@@ -550,21 +558,21 @@ export default function EditEventPage() {
                           </div>
                         )}
                       </div>
-                      <div>
+                      <div className="min-w-0">
                         {isCompressing ? (
-                          <p className="font-medium text-foreground animate-pulse text-[10px]">
+                          <p className="font-medium text-foreground animate-pulse text-xs">
                             Compressing...
                           </p>
                         ) : (
                           <>
-                            <p className="font-medium text-foreground text-[10px] truncate max-w-[150px]">
+                            <p className="font-medium text-foreground text-sm truncate max-w-[200px]">
                               {file?.name}
                             </p>
-                            <div className="flex items-center gap-1 text-[9px] text-muted-foreground">
+                            <div className="flex items-center gap-2 text-xs text-muted-foreground">
                               <span>
                                 {(file!.size / 1024 / 1024).toFixed(2)} MB
                               </span>
-                              <span className="bg-green-100 text-green-700 px-1 py-0.5 font-bold uppercase">
+                              <span className="bg-green-100 text-green-700 px-1.5 py-0.5 font-bold uppercase text-[10px]">
                                 Ready
                               </span>
                             </div>
@@ -576,10 +584,10 @@ export default function EditEventPage() {
                 ) : (
                   <label className="flex cursor-pointer flex-col items-center justify-center rounded-none border border-dashed border-zinc-300 p-4 hover:bg-zinc-50 bg-white transition-colors">
                     <UploadSimpleIcon className="mb-1 h-5 w-5 text-muted-foreground" />
-                    <span className="text-xs text-muted-foreground font-medium">
+                    <span className="text-sm text-muted-foreground font-medium">
                       Click to upload poster
                     </span>
-                    <span className="text-[10px] text-muted-foreground mt-0.5">
+                    <span className="text-xs text-muted-foreground mt-0.5">
                       Supports Images (Auto-WebP)
                     </span>
                     <input
@@ -592,15 +600,16 @@ export default function EditEventPage() {
                 )}
               </div>
 
-              <div className="flex gap-2 pt-3 border-t border-zinc-100">
+              <div className="flex gap-3 pt-4 border-t border-zinc-100">
                 <Button
                   type="submit"
                   disabled={saving || isCompressing}
-                  className="flex-1 rounded-none h-8 text-xs font-medium cursor-pointer"
+                  className="flex-1 rounded-none h-9 text-xs sm:text-sm font-medium cursor-pointer"
                 >
                   {saving ? (
                     <>
-                      <SpinnerIcon className="mr-1.5 animate-spin" /> Saving...
+                      <SpinnerIcon className="mr-2 h-3.5 w-3.5 animate-spin" />{" "}
+                      Saving...
                     </>
                   ) : isCompressing ? (
                     "Processing..."
@@ -612,7 +621,7 @@ export default function EditEventPage() {
                   <Button
                     type="button"
                     variant="outline"
-                    className="rounded-none bg-white h-8 text-xs font-medium cursor-pointer"
+                    className="rounded-none bg-white h-9 text-xs sm:text-sm font-medium cursor-pointer"
                   >
                     Cancel
                   </Button>
@@ -623,23 +632,23 @@ export default function EditEventPage() {
         </Card>
 
         <AlertDialog open={showSaveDialog} onOpenChange={setShowSaveDialog}>
-          <AlertDialogContent className="rounded-none border-zinc-200 bg-white shadow-lg max-w-sm p-4">
-            <AlertDialogHeader className="space-y-1">
-              <AlertDialogTitle className="text-sm">
+          <AlertDialogContent className="rounded-none border-zinc-200 bg-white shadow-lg max-w-sm p-5 w-[95vw]">
+            <AlertDialogHeader className="space-y-2">
+              <AlertDialogTitle className="text-base">
                 Save Changes?
               </AlertDialogTitle>
-              <AlertDialogDescription className="text-xs">
+              <AlertDialogDescription className="text-sm">
                 Are you sure you want to update this event? This action will
                 overwrite the existing event details.
               </AlertDialogDescription>
             </AlertDialogHeader>
-            <AlertDialogFooter className="mt-3">
-              <AlertDialogCancel className="rounded-none border-zinc-200 bg-white hover:bg-zinc-50 h-7 text-xs cursor-pointer">
+            <AlertDialogFooter className="mt-4">
+              <AlertDialogCancel className="rounded-none border-zinc-200 bg-white hover:bg-zinc-50 h-8 text-sm cursor-pointer">
                 Cancel
               </AlertDialogCancel>
               <AlertDialogAction
                 onClick={confirmSave}
-                className="rounded-none bg-zinc-900 text-white hover:bg-zinc-800 h-7 text-xs cursor-pointer"
+                className="rounded-none bg-zinc-900 text-white hover:bg-zinc-800 h-8 text-sm cursor-pointer"
               >
                 Confirm Save
               </AlertDialogAction>

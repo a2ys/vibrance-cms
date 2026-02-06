@@ -32,24 +32,24 @@ export function Sidebar({ isCollapsed, toggleSidebar }: SidebarProps) {
   return (
     <aside
       className={cn(
-        "relative z-50 border-r border-zinc-200 bg-white flex flex-col transition-all duration-300 ease-in-out",
-        isCollapsed ? "w-17.5" : "w-64",
+        "relative z-50 border-r border-zinc-200 bg-white flex flex-col transition-all duration-300 ease-in-out shrink-0",
+        isCollapsed ? "w-20" : "w-72",
       )}
     >
       <div
         className={cn(
-          "flex h-12 shrink-0 items-center px-3 border-b border-zinc-200 transition-all",
+          "flex h-14 shrink-0 items-center px-4 border-b border-zinc-200 transition-all",
           isCollapsed ? "justify-center" : "justify-between",
         )}
       >
         <div
           className={cn(
-            "flex items-center gap-2 overflow-hidden transition-all",
+            "flex items-center gap-3 overflow-hidden transition-all",
             isCollapsed ? "w-0 opacity-0 hidden" : "w-auto opacity-100 flex",
           )}
         >
-          <div className="h-5 w-5 bg-foreground rounded-none shrink-0"></div>
-          <span className="text-sm font-bold tracking-tight text-foreground whitespace-nowrap">
+          <div className="h-6 w-6 bg-foreground rounded-none shrink-0"></div>
+          <span className="text-base font-bold tracking-tight text-foreground whitespace-nowrap">
             Vibrance CMS
           </span>
         </div>
@@ -58,13 +58,13 @@ export function Sidebar({ isCollapsed, toggleSidebar }: SidebarProps) {
           variant="ghost"
           size="icon"
           onClick={toggleSidebar}
-          className="h-8 w-8 rounded-none text-muted-foreground hover:text-foreground shrink-0"
+          className="h-9 w-9 rounded-none text-muted-foreground hover:text-foreground shrink-0 cursor-pointer"
         >
-          <SidebarSimpleIcon className="h-4 w-4" />
+          <SidebarSimpleIcon className="h-5 w-5" />
         </Button>
       </div>
 
-      <nav className="flex-1 flex flex-col gap-1 p-2 overflow-y-auto overflow-x-hidden">
+      <nav className="flex-1 flex flex-col gap-1 p-3 overflow-y-auto overflow-x-hidden">
         {navigation.map((item) => {
           const isActive =
             pathname === item.href ||
@@ -75,7 +75,7 @@ export function Sidebar({ isCollapsed, toggleSidebar }: SidebarProps) {
               href={item.href}
               title={isCollapsed ? item.name : undefined}
               className={cn(
-                "flex items-center rounded-none py-2 text-xs font-medium transition-all border-l-2 cursor-pointer whitespace-nowrap",
+                "flex items-center rounded-none py-3 text-sm font-medium transition-all border-l-2 cursor-pointer whitespace-nowrap",
                 isCollapsed
                   ? "justify-center px-0"
                   : "justify-start gap-3 px-3",
@@ -84,7 +84,7 @@ export function Sidebar({ isCollapsed, toggleSidebar }: SidebarProps) {
                   : "text-muted-foreground hover:bg-zinc-50 hover:text-foreground border-transparent",
               )}
             >
-              <item.icon className="h-4 w-4 shrink-0" />
+              <item.icon className="h-5 w-5 shrink-0" />
               <span
                 className={cn(
                   "transition-all duration-300",
@@ -100,18 +100,18 @@ export function Sidebar({ isCollapsed, toggleSidebar }: SidebarProps) {
         })}
       </nav>
 
-      <div className="p-2 border-t border-zinc-200 bg-white">
+      <div className="p-3 border-t border-zinc-200 bg-white">
         <SignOutButton redirectUrl="/sign-in">
           <button
             title="Sign Out"
             className={cn(
-              "flex w-full items-center rounded-none py-2 text-xs font-medium transition-all border-l-2 border-transparent",
+              "flex w-full items-center rounded-none py-3 text-sm font-medium transition-all border-l-2 border-transparent",
               "text-muted-foreground hover:bg-red-50 hover:text-red-600 hover:border-red-600",
               "cursor-pointer",
               isCollapsed ? "justify-center px-0" : "justify-start gap-3 px-3",
             )}
           >
-            <SignOutIcon className="h-4 w-4 shrink-0" />
+            <SignOutIcon className="h-5 w-5 shrink-0" />
             <span
               className={cn(
                 "transition-all duration-300",
