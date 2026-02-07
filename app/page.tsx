@@ -31,8 +31,7 @@ export default function DashboardPage() {
         const res = await fetch(`${API_URL}/events`);
         const data = await res.json();
         setEvents(Array.isArray(data) ? data : []);
-      } catch (error) {
-        console.error(error);
+      } catch {
       } finally {
         setLoading(false);
       }
@@ -65,10 +64,7 @@ export default function DashboardPage() {
   }, [events]);
 
   return (
-    <CMSLayout
-      title="Dashboard"
-      description="Overview of your content management system"
-    >
+    <CMSLayout title="Dashboard" description="Overview of the CMS">
       <div className="space-y-4 bg-zinc-50 p-4">
         <div className="grid gap-4 md:grid-cols-2">
           {stats.map((stat) => (
@@ -130,15 +126,28 @@ export default function DashboardPage() {
               </div>
             ) : recentEvents.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-8 text-center">
-                <p className="text-sm text-muted-foreground">No events yet</p>
-                <Link href="/events/new" className="mt-3 cursor-pointer">
-                  <Button
-                    size="sm"
-                    className="rounded-none h-8 text-xs cursor-pointer"
-                  >
-                    Create Your First Event
-                  </Button>
-                </Link>
+                <p className="text-sm text-muted-foreground">
+                  No events added yet
+                </p>
+                <div className="flex flex-wrap items-center gap-2 mt-4">
+                  <Link href="/events/import" className="cursor-pointer">
+                    <Button
+                      className="rounded-none h-8 text-xs cursor-pointer px-3"
+                      variant="outline"
+                    >
+                      <UploadSimpleIcon className="mr-1.5 h-4 w-4" />
+                      Upload Events from CSV
+                    </Button>
+                  </Link>
+                  <Link href="/events/new" className="cursor-pointer">
+                    <Button
+                      size="sm"
+                      className="rounded-none h-8 text-xs cursor-pointer"
+                    >
+                      Create an Event
+                    </Button>
+                  </Link>
+                </div>
               </div>
             ) : (
               <div className="divide-y divide-zinc-100">
@@ -198,13 +207,19 @@ export default function DashboardPage() {
             </p>
           </CardHeader>
           <CardContent className="p-4 pt-2">
-            <div className="grid gap-3 sm:grid-cols-3">
+            <div className="grid gap-3 sm:grid-cols-4">
               {[
                 {
                   href: "/events/new",
                   icon: CalendarBlankIcon,
                   title: "Create Event",
                   desc: "Add a new event",
+                },
+                {
+                  href: "/events/import",
+                  icon: UploadSimpleIcon,
+                  title: "Import Events",
+                  desc: "Bulk upload events",
                 },
                 {
                   href: "/media",
@@ -216,7 +231,7 @@ export default function DashboardPage() {
                   href: "/upload",
                   icon: UploadSimpleIcon,
                   title: "Upload Media",
-                  desc: "Add photos",
+                  desc: "Add new media",
                 },
               ].map((action) => (
                 <Link

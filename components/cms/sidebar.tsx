@@ -1,5 +1,6 @@
 "use client";
 
+import { useSyncExternalStore } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { SignOutButton } from "@clerk/nextjs";
@@ -26,8 +27,21 @@ interface SidebarProps {
   toggleSidebar: () => void;
 }
 
+function useIsMounted() {
+  return useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false,
+  );
+}
+
 export function Sidebar({ isCollapsed, toggleSidebar }: SidebarProps) {
   const pathname = usePathname();
+  const isMounted = useIsMounted();
+
+  if (!isMounted) {
+    return <aside className="w-20 border-r bg-white" />;
+  }
 
   return (
     <aside

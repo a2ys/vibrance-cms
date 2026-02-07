@@ -118,8 +118,7 @@ export default function MediaBrowserPage() {
         );
         setFiles(cleanFiles);
       }
-    } catch (error) {
-      console.error(error);
+    } catch {
     } finally {
       setLoading(false);
     }
@@ -182,9 +181,7 @@ export default function MediaBrowserPage() {
             const blob = await response.blob();
             const fileName = file.key.split("/").pop() || "unknown";
             zip.file(fileName, blob);
-          } catch (err) {
-            console.error(err);
-          }
+          } catch {}
         });
 
         await Promise.all(promises);
@@ -193,8 +190,7 @@ export default function MediaBrowserPage() {
           currentPath.replace(/\/$/, "").split("/").pop() || "media";
         saveAs(content, `${folderName}-selected.zip`);
       }
-    } catch (error) {
-      console.error(error);
+    } catch {
     } finally {
       setIsBulkDownloading(false);
     }
@@ -216,8 +212,7 @@ export default function MediaBrowserPage() {
       setFiles((prev) => prev.filter((f) => !selectedKeys.has(f.key)));
       setSelectedKeys(new Set());
       setShowDeleteConfirm(false);
-    } catch (error) {
-      console.error(error);
+    } catch {
     } finally {
       setIsBulkDeleting(false);
     }
@@ -273,7 +268,7 @@ export default function MediaBrowserPage() {
   return (
     <CMSLayout
       title="Media Browser"
-      description="Browse your R2 storage folders"
+      description="Browse the R2 storage files and folders"
       actions={
         <div className="flex flex-wrap items-center gap-2">
           {selectedKeys.size > 0 && (

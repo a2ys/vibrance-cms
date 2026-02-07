@@ -24,14 +24,6 @@ const toInputDate = (dateStr?: string) => {
   return dateStr.replace(" ", "T").slice(0, 16);
 };
 
-const EVENT_TYPES = [
-  "Game",
-  "Entertainment",
-  "Hackathon",
-  "Competition",
-  "Workshop",
-];
-
 const EVENT_FOR_OPTIONS = ["VITian", "Non VITian", "Both"];
 
 export function EventForm({ initialData }: { initialData?: Event }) {
@@ -138,8 +130,7 @@ export function EventForm({ initialData }: { initialData?: Event }) {
         router.push("/events");
         router.refresh();
       }
-    } catch (err) {
-      console.error(err);
+    } catch {
     } finally {
       setLoading(false);
     }

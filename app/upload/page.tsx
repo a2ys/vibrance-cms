@@ -136,7 +136,7 @@ export default function UploadMediaPage() {
   return (
     <CMSLayout
       title="Upload Media"
-      description="Upload photos and videos to your R2 storage"
+      description="Upload photos and videos to the R2 storage"
       actions={
         <Link href="/media" className="cursor-pointer">
           <Button

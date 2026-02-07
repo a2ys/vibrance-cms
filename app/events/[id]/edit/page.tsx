@@ -38,14 +38,6 @@ import type { Event } from "@/lib/types";
 import Link from "next/link";
 import { compressImage } from "@/lib/utils";
 
-const EVENT_TYPES = [
-  "Game",
-  "Entertainment",
-  "Hackathon",
-  "Competition",
-  "Workshop",
-];
-
 const EVENT_FOR_OPTIONS = ["VITian", "Non VITian", "Both"];
 
 type EventFormData = {
