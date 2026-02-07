@@ -32,7 +32,7 @@ const EVENT_TYPES = [
   "Workshop",
 ];
 
-const EVENT_FOR_OPTIONS = ["VITian", "Non VITian"];
+const EVENT_FOR_OPTIONS = ["VITian", "Non VITian", "Both"];
 
 export function EventForm({ initialData }: { initialData?: Event }) {
   const router = useRouter();
@@ -180,27 +180,13 @@ export function EventForm({ initialData }: { initialData?: Event }) {
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="space-y-1.5">
           <Label className="text-sm">Event Type</Label>
-          <Select
+          <Input
             value={formData.event_type}
-            onValueChange={(value) =>
-              setFormData({ ...formData, event_type: value })
+            onChange={(e) =>
+              setFormData({ ...formData, event_type: e.target.value })
             }
-          >
-            <SelectTrigger className="bg-white rounded-none w-full h-9 text-sm">
-              <SelectValue placeholder="Select type" />
-            </SelectTrigger>
-            <SelectContent className="rounded-none">
-              {EVENT_TYPES.map((type) => (
-                <SelectItem
-                  key={type}
-                  value={type}
-                  className="text-sm rounded-none"
-                >
-                  {type}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+            className="rounded-none bg-white h-9 text-sm"
+          />
         </div>
         <div className="space-y-1.5">
           <Label className="text-sm">Event For</Label>
