@@ -7,6 +7,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { API_URL } from "@/lib/config";
 import type { Event } from "@/lib/types";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -95,6 +96,7 @@ export default function EventsPage() {
   const [isBulkDeleting, setIsBulkDeleting] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
+  const router = useRouter();
 
   const debouncedQuery = useDebounce(searchQuery, 300);
 
@@ -168,7 +170,7 @@ export default function EventsPage() {
     if (selection && selection.toString().length > 0) {
       return;
     }
-    toggleSelection(id);
+    router.push(`/events/${id}`);
   };
 
   const isAllSelected =
